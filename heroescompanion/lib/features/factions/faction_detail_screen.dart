@@ -76,7 +76,7 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
             ),
             const SizedBox(height: 24),
 
-            _buildResourceBlocksPanel(),
+            _buildArmyBlocksPanel(_faction),
             const SizedBox(height: 24),
 
             // Заголовок ресурсов
@@ -154,40 +154,67 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     );
   }
 
-  Widget _buildResourceBlocksPanel() {
-    final List<Map<String, dynamic>> resourceBlocks = [
-      {'image': 'assets/wood.PNG', 'count': _resources[_faction.resources.length > 0 ? _faction.resources[0] : ''] ?? 0},
-      {'image': 'assets/iron.PNG', 'count': _resources[_faction.resources.length > 1 ? _faction.resources[1] : ''] ?? 0},
-      {'image': 'assets/gold.PNG', 'count': _resources[_faction.resources.length > 2 ? _faction.resources[2] : ''] ?? 0},
-      {'image': 'assets/move.PNG', 'count': _resources[_faction.resources.length > 3 ? _faction.resources[3] : ''] ?? 0},
-      {'image': 'assets/build.PNG', 'count': _resources[_faction.resources.length > 4 ? _faction.resources[4] : ''] ?? 0},
-    ];
+  Widget _buildArmyBlocksPanel(faction) {
+    // This panel now shows army unit slots based on the selected faction
+    // Each unit slot has an image and two counters: total units and deployed units
+    
+    // Use army units data from the faction
+    final List<String> armyUnits = faction.units ?? [];
 
     return Container(
-      height: 100,
+      height: 130,
       decoration: BoxDecoration(
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListView(
         scrollDirection: Axis.horizontal,
-        children: resourceBlocks.map((block) {
+        children: armyUnits.asMap().entries.map((entry) {
+          int index = entry.key;
+          String unit = entry.value;
           return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(4.0),
+            child: Stack(
               children: [
+                // Unit image
                 Image.asset(
-                  block['image'],
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.contain,
+                  faction.unitsAssets[index],
+                  fit: BoxFit.cover,
                 ),
-                Text(
-                  '${block['count']}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                // Counters overlay
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    children: [
+                      // Total units counter
+                      Container(
+                        color: Colors.black54,
+                        child: Text(
+                          unit,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      // Deployed units counter
+                      Container(
+                        color: Colors.redAccent,
+                        child: Text(
+                          unit,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
