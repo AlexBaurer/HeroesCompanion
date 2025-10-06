@@ -66,25 +66,47 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Кнопка "Следующий раунд"
-            _buildNextRoundButton(),
-            const SizedBox(height: 24),
-
-            // Текущий раунд (только для информации)
-            Text(
-              'Текущий раунд: $_round',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Текущий раунд (только для информации)
+                Text(
+                  'Текущий\nраунд: $_round',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                _buildNextRoundButton(),
+              ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 14),
 
             _buildArmyBlocksPanel(_faction),
-            const SizedBox(height: 24),
+            const SizedBox(height: 4),
 
             // Заголовок ресурсов
-            const Text(
-              'Ресурсы:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                // Заголовок ресурсов
+                SizedBox(width: 10),
+                Text(
+                  'Ресурсы',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                // Кнопка "Изменить порядок ресурсов"
+                SizedBox(width: 70),
+                Text('Порядок действий',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
 
             // Счётчики ресурсов
             Expanded(
@@ -135,7 +157,7 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
 
   Widget _buildNextRoundButton() {
     return SizedBox(
-      width: double.infinity,
+      width: 200,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
@@ -162,11 +184,11 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     final List<String> armyUnits = faction.units ?? [];
 
     return Container(
-      height: 130,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
+      height: 106,
+      // decoration: BoxDecoration(
+      //   // color: Colors.grey[200],
+      //   // borderRadius: BorderRadius.circular(8),
+      // ),
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: armyUnits.asMap().entries.map((entry) {
@@ -179,7 +201,8 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
                 // Unit image
                 Image.asset(
                   faction.unitsAssets[index],
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
+                  width: 100,
                 ),
                 // Counters overlay
                 Positioned(

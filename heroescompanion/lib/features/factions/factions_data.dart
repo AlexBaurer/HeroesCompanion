@@ -90,15 +90,15 @@ class Faction {
       name: 'Полурослики',
       primaryColor: Colors.greenAccent,
       resources: ['Золото', 'Дерево', 'Железо'],
-      units: ['Полурослик', 'Полурослик-маг'],
-      unitsAssets: ['assets/units/poluroslik.PNG', 'assets/units/poluroslik-mag.PNG'],
+      units: ['Гладиатор', 'Легионер'],
+      unitsAssets: ['assets/units/gladiator.PNG', 'assets/units/legioner.PNG'],
     ),
     Faction(
       name: 'Культисты',
       primaryColor: Colors.black,
       resources: ['Золото', 'Дерево', 'Железо'],
-      units: ['Культист', 'Паломник'],
-      unitsAssets: ['assets/units/cultist.PNG', 'assets/units/palomnik.PNG'],
+      units: ['Проповедник', 'Паломник'],
+      unitsAssets: ['assets/units/propovednik.PNG', 'assets/units/palomnik.PNG'],
     ),
   ];
 
