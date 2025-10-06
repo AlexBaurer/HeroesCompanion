@@ -45,24 +45,30 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 60,
-      child: ListWheelScrollView.useDelegate(
-        itemExtent: 75,
-        physics: const FixedExtentScrollPhysics(), // ← ВОТ КЛЮЧЕВАЯ СТРОКА
-        controller: _controller,
-        diameterRatio: 2.5,
-        childDelegate: ListWheelChildBuilderDelegate(
-          builder: (context, index) {
-            if (index < 0 || index > 99) return const SizedBox();
-            return Center(
-              child: Text(
-                '$index',
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              ),
-            );
-          },
-          childCount: 100,
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 226, 226, 226),
+        borderRadius: BorderRadius.circular(8)
+      ),
+      child: SizedBox(
+        height: 60,
+        child: ListWheelScrollView.useDelegate(
+          itemExtent: 75,
+          physics: const FixedExtentScrollPhysics(), // ← ВОТ КЛЮЧЕВАЯ СТРОКА
+          controller: _controller,
+          diameterRatio: 2.5,
+          childDelegate: ListWheelChildBuilderDelegate(
+            builder: (context, index) {
+              if (index < 0 || index > 99) return const SizedBox();
+              return Center(
+                child: Text(
+                  '$index',
+                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                ),
+              );
+            },
+            childCount: 100,
+          ),
         ),
       ),
     );
