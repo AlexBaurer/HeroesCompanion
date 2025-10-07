@@ -45,12 +45,11 @@ class ArmyBlockPanel extends StatelessWidget {
                     children: [
                       // Total units counter
                       Container(
-                        // color: Colors.black54,
-                        // height: 50,
                         child: ResourceCounterWheel(
                           resource: 'total_$unit',
                           initialValue: 0,
                           heightOfWheel: 50,
+                          fontSize: 40,
                           onValueChanged: (value) {
                             // Handle total units value change
                           },
@@ -58,12 +57,11 @@ class ArmyBlockPanel extends StatelessWidget {
                       ),
                       // Deployed units counter
                       Container(
-                        // color: Colors.redAccent,
-                        // height: 50,
                         child: ResourceCounterWheel(
                             resource: 'deployed_$unit',
                             initialValue: 0,
                             heightOfWheel: 50,
+                            fontSize: 25,
                             onValueChanged: (value) {
                               // Handle deployed units value change
                             },
@@ -72,28 +70,6 @@ class ArmyBlockPanel extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Positioned(
-                //   top: 5,
-                //   left: 5,
-                //   child: ResourceCounterWheel(
-                //     resource: 'total_$unit',
-                //     initialValue: 0,
-                //     onValueChanged: (value) {
-                //       // Handle total units value change
-                //     },
-                //   ),
-                // ),
-                // Positioned(
-                //   top: 5,
-                //   right: 5,
-                //   child: ResourceCounterWheel(
-                //     resource: 'deployed_$unit',
-                //     initialValue: 0,
-                //     onValueChanged: (value) {
-                //       // Handle deployed units value change
-                //     },
-                //   ),
-                // ),
               ],
             ),
           );

@@ -98,13 +98,15 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
                   ),
                 ),
                 // Кнопка "Изменить порядок ресурсов"
-                SizedBox(width: 70),
+                // SizedBox(width: 70),
+                Spacer(),
                 Text('Порядок действий',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.black,                    
                   ),
+                  textAlign: TextAlign.right,
                 ),
               ],
             ),

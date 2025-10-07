@@ -5,6 +5,7 @@ class ResourceCounterWheel extends StatefulWidget {
   final int initialValue;
   final ValueChanged<int> onValueChanged;
   final double heightOfWheel;
+  final double fontSize;
 
   const ResourceCounterWheel({
     super.key,
@@ -12,6 +13,7 @@ class ResourceCounterWheel extends StatefulWidget {
     required this.initialValue,
     required this.onValueChanged,
     this.heightOfWheel = 90,
+    this.fontSize = 50,
   });
 
   @override
@@ -64,11 +66,39 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
               final displayIndex = 99 - index;
               if (displayIndex < 0 || displayIndex > 99) return const SizedBox();
               return Center(
-                child: Text(
-                  '$displayIndex',
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-              );
+                // child: Text(
+                //   '$displayIndex',
+                //   style: TextStyle(fontSize: 32,
+                //                     fontWeight: FontWeight.bold,
+                //                     foreground: Paint()
+                //                     ..style = PaintingStyle.stroke
+                //                     ..strokeWidth = 6
+                //                     ..color = Colors.blue[700]!,),
+                // ),
+                child: Stack(
+                  children: <Widget>[
+                    // Stroked text as border.
+                    Text(
+                      '$displayIndex',
+                      style: TextStyle(
+                        fontSize: widget.fontSize,
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 4
+                          ..color = const Color.fromARGB(255, 255, 255, 255)!,
+                      ),
+                    ),
+                    // Solid text as fill.
+                    Text(
+                      '$displayIndex',
+                      style: TextStyle(
+                        fontSize: widget.fontSize,
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ),
+                  ],
+                )
+              );                                      
             },
             childCount: 100,
           ),
