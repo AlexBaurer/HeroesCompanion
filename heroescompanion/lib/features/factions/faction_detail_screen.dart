@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heroescompanion/features/factions/factions_data.dart';
 import 'package:heroescompanion/features/factions/reorder_list.dart';
 import 'package:heroescompanion/features/factions/resource_counter_wheel.dart';
+import 'package:heroescompanion/features/factions/army_block_panel.dart';
 
 class FactionDetailScreen extends StatefulWidget {
   final String factionName;
@@ -79,7 +80,8 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
             ),
             const SizedBox(height: 14),
 
-            _buildArmyBlocksPanel(_faction),
+            // _buildArmyBlocksPanel(_faction),
+            ArmyBlockPanel(faction: _faction),
             const SizedBox(height: 4),
 
             // Заголовок ресурсов

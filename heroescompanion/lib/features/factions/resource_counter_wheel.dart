@@ -4,12 +4,14 @@ class ResourceCounterWheel extends StatefulWidget {
   final String resource;
   final int initialValue;
   final ValueChanged<int> onValueChanged;
+  final double heightOfWheel;
 
   const ResourceCounterWheel({
     super.key,
     required this.resource,
     required this.initialValue,
     required this.onValueChanged,
+    this.heightOfWheel = 90,
   });
 
   @override
@@ -22,7 +24,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
   @override
   void initState() {
     super.initState();
-    _controller = FixedExtentScrollController(initialItem: widget.initialValue);
+    _controller = FixedExtentScrollController(initialItem: 99 - widget.initialValue);
     // Слушаем изменения только после инициализации
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.addListener(_onScroll);
@@ -39,7 +41,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
   void _onScroll() {
     final newIndex = _controller.selectedItem;
     if (newIndex != null && newIndex >= 0 && newIndex <= 99) {
-      widget.onValueChanged(newIndex);
+      widget.onValueChanged(99 - newIndex);
     }
   }
 
@@ -47,22 +49,23 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 226, 226, 226),
+        color: const Color.fromARGB(50, 226, 226, 226),
         borderRadius: BorderRadius.circular(8)
       ),
       child: SizedBox(
-        height: 60,
+        height: widget.heightOfWheel,
         child: ListWheelScrollView.useDelegate(
           itemExtent: 75,
-          physics: const FixedExtentScrollPhysics(), // ← ВОТ КЛЮЧЕВАЯ СТРОКА
+          physics: const FixedExtentScrollPhysics(),
           controller: _controller,
           diameterRatio: 2.5,
           childDelegate: ListWheelChildBuilderDelegate(
             builder: (context, index) {
-              if (index < 0 || index > 99) return const SizedBox();
+              final displayIndex = 99 - index;
+              if (displayIndex < 0 || displayIndex > 99) return const SizedBox();
               return Center(
                 child: Text(
-                  '$index',
+                  '$displayIndex',
                   style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 ),
               );

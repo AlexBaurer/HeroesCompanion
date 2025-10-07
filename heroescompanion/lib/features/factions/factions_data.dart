@@ -54,7 +54,7 @@ class Faction {
     Faction(
       name: 'Наги',
       primaryColor: Color.fromARGB(255, 0, 198, 212),
-      resources: ['Золото', 'Дерево', 'Железо', 'Краки'],
+      resources: ['Золото', 'Дерево', 'Железо'],
       units: ['Краки'],
       unitsAssets: ['assets/units/kraki.PNG'],
     ),
