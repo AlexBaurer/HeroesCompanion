@@ -16,7 +16,7 @@ class ArmyBlockPanel extends StatelessWidget {
     final List<String> armyUnits = faction.units ?? [];
 
     return Container(
-      height: 106,
+      height: 146,
       // decoration: BoxDecoration(
       //   // color: Colors.grey[200],
       //   // borderRadius: BorderRadius.circular(8),
@@ -48,7 +48,7 @@ class ArmyBlockPanel extends StatelessWidget {
                         child: ResourceCounterWheel(
                           resource: 'total_$unit',
                           initialValue: 0,
-                          heightOfWheel: 50,
+                          heightOfWheel: 90,
                           fontSize: 40,
                           onValueChanged: (value) {
                             // Handle total units value change

@@ -49,8 +49,26 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
 
   @override
   Widget build(BuildContext context) {
+
+    final List<String> resourcesAssets = [
+          'assets/wood.PNG',
+          'assets/iron.PNG',
+          'assets/gold.PNG',
+        ];
+        String backImage = ''; // Empty by default
+
+    if (widget.resource == 'Дерево'){
+      backImage = resourcesAssets[0];
+    } else if (widget.resource == 'Железо'){
+      backImage = resourcesAssets[1];
+    } else if (widget.resource == 'Золото'){
+      backImage = resourcesAssets[2];
+    }
+    // For any other resource, backImage remains empty
+
     return Container(
       decoration: BoxDecoration(
+        image: backImage.isNotEmpty ? DecorationImage(image: AssetImage(backImage), fit: BoxFit.cover, opacity: 0.5) : null,
         color: const Color.fromARGB(50, 226, 226, 226),
         borderRadius: BorderRadius.circular(8)
       ),
@@ -65,16 +83,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
             builder: (context, index) {
               final displayIndex = 99 - index;
               if (displayIndex < 0 || displayIndex > 99) return const SizedBox();
-              return Center(
-                // child: Text(
-                //   '$displayIndex',
-                //   style: TextStyle(fontSize: 32,
-                //                     fontWeight: FontWeight.bold,
-                //                     foreground: Paint()
-                //                     ..style = PaintingStyle.stroke
-                //                     ..strokeWidth = 6
-                //                     ..color = Colors.blue[700]!,),
-                // ),
+              return Center(                
                 child: Stack(
                   children: <Widget>[
                     // Stroked text as border.
@@ -84,7 +93,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
                         fontSize: widget.fontSize,
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
-                          ..strokeWidth = 4
+                          ..strokeWidth = 5
                           ..color = const Color.fromARGB(255, 255, 255, 255)!,
                       ),
                     ),

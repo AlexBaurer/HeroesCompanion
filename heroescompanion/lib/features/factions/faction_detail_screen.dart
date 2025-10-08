@@ -47,7 +47,7 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
   @override
   Widget build(BuildContext context) {
 
-    final List<String> heroImages = [
+    final List<String> resourceImages = [
           'assets/wood.PNG',
           'assets/iron.PNG',
           'assets/gold.PNG',
@@ -57,104 +57,126 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_faction.name),
+        // title: Text(_faction.name),
         backgroundColor: _faction.primaryColor,
-        foregroundColor: Colors.white,
+        // foregroundColor: Colors.white,
+        toolbarHeight: 0,
+        
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Кнопка "Следующий раунд"
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Текущий раунд (только для информации)
-                Text(
-                  'Текущий\nраунд: $_round',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                _buildNextRoundButton(),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // _buildArmyBlocksPanel(_faction),
-            ArmyBlockPanel(faction: _faction),
-            const SizedBox(height: 4),
-
-            // Заголовок ресурсов
-            Row(
-              children: [
-                // Заголовок ресурсов
-                SizedBox(width: 10),
-                Text(
-                  'Ресурсы',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                // Кнопка "Изменить порядок ресурсов"
-                // SizedBox(width: 70),
-                Spacer(),
-                Text('Порядок действий',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,                    
-                  ),
-                  textAlign: TextAlign.right,
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-
-            // Счётчики ресурсов
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      children: _faction.resources.map((res) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                res,
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 8),
-                              ResourceCounterWheel(
-                                resource: res,
-                                initialValue: _resources[res] ?? 0,
-                                onValueChanged: (newValue) {
-                                  setState(() {
-                                    _resources[res] = newValue;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  SizedBox(
-                    height: 350, 
-                    width: 160, 
-                    child: ResourceOrderImageList(imageAssets: heroImages),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Background image with semi-transparency
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 109, 109, 109), // Add your desired background color here
               ),
-            ),  
-          ],
-        ),
+              child: Opacity(
+                opacity: 0.2, // Adjust this value to control transparency (0.0 to 1.0)
+                child: Image.asset(
+                  _faction.backgroundPicture, // Replace with your actual asset path
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          // Main content
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Кнопка "Следующий раунд"
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Текущий раунд (только для информации)
+                    Text(
+                      'Текущий\nраунд: $_round',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    _buildNextRoundButton(),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // _buildArmyBlocksPanel(_faction),
+                ArmyBlockPanel(faction: _faction),
+                const SizedBox(height: 4),
+
+                // Заголовок ресурсов
+                Row(
+                  children: [
+                    // Заголовок ресурсов
+                    SizedBox(width: 10),
+                    Text(
+                      'Ресурсы',                      
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    // Кнопка "Изменить порядок ресурсов"
+                    // SizedBox(width: 70),
+                    Spacer(),
+                    Text('Порядок действий',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        color: const Color.fromARGB(255, 255, 255, 255),                    
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+
+                // Счётчики ресурсов
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          children: _faction.resources.map((res) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Text(
+                                  //   res,
+                                  //   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  // ),
+                                  // const SizedBox(height: 8),
+                                  ResourceCounterWheel(
+                                    resource: res,
+                                    initialValue: _resources[res] ?? 0,
+                                    onValueChanged: (newValue) {
+                                      setState(() {
+                                        _resources[res] = newValue;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        // height: 350, 
+                        // width: 160, 
+                        child: ResourceOrderImageList(imageAssets: resourceImages),
+                      ),
+                    ],
+                  ),
+                ),  
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -179,78 +201,4 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
       ),
     );
   }
-
-  Widget _buildArmyBlocksPanel(faction) {
-    // This panel now shows army unit slots based on the selected faction
-    // Each unit slot has an image and two counters: total units and deployed units
-    
-    // Use army units data from the faction
-    final List<String> armyUnits = faction.units ?? [];
-
-    return Container(
-      height: 106,
-      // decoration: BoxDecoration(
-      //   // color: Colors.grey[200],
-      //   // borderRadius: BorderRadius.circular(8),
-      // ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: armyUnits.asMap().entries.map((entry) {
-          int index = entry.key;
-          String unit = entry.value;
-          return Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Stack(
-              children: [
-                // Unit image
-                Image.asset(
-                  faction.unitsAssets[index],
-                  fit: BoxFit.fill,
-                  width: 100,
-                ),
-                // Counters overlay
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Column(
-                    children: [
-                      // Total units counter
-                      Container(
-                        color: Colors.black54,
-                        child: Text(
-                          unit,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      // Deployed units counter
-                      Container(
-                        color: Colors.redAccent,
-                        child: Text(
-                          unit,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 }
-
-
