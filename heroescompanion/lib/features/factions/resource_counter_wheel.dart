@@ -42,7 +42,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
 
   void _onScroll() {
     final newIndex = _controller.selectedItem;
-    if (newIndex != null && newIndex >= 0 && newIndex <= 99) {
+    if (newIndex >= 0 && newIndex <= 99) {
       widget.onValueChanged(99 - newIndex);
     }
   }
@@ -94,7 +94,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 5
-                          ..color = const Color.fromARGB(255, 255, 255, 255)!,
+                          ..color = const Color.fromARGB(255, 255, 255, 255),
                       ),
                     ),
                     // Solid text as fill.

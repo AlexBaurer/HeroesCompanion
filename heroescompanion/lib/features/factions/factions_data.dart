@@ -5,7 +5,6 @@ class Faction {
   final String backgroundPicture;
   final Color primaryColor;
   final List<String> resources;
-  // final List<String> resourcesAssets;
   final List<String> units;
   final List<String> unitsAssets;
   final List<String> unitsPower;
@@ -15,7 +14,6 @@ class Faction {
     required this.backgroundPicture,
     required this.primaryColor,
     required this.resources,
-    // required this.resourcesAssets,
     required this.units,
     required this.unitsAssets,
     required this.unitsPower,
@@ -29,7 +27,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Солдат', 'Латник', 'Архимаг'],
       unitsAssets: ['assets/units/soldier.PNG', 'assets/units/latnik.PNG', 'assets/units/archimage.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['2', '3', '5'],
     ),
     Faction(
       name: 'Нежить',
@@ -38,7 +36,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Скелет', 'Палач', 'Лич'],
       unitsAssets: ['assets/units/skeleton.PNG', 'assets/units/paladin.PNG', 'assets/units/lich.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['1', '0', '5'],
     ),
     Faction(
       name: 'Гномы',
@@ -47,7 +45,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Механик', 'Стреколёт', 'Автоматон', 'Мехозавр'],
       unitsAssets: ['assets/units/mechanic.PNG', 'assets/units/skarlat.PNG', 'assets/units/automaton.PNG', 'assets/units/mechazavr.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['0', '2', '4', '5'],
     ),
     Faction(
       name: 'Орки',
@@ -56,7 +54,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото', 'Ярость'],
       units: ['Разведчик', 'Громила', 'Взрыватель'],
       unitsAssets: ['assets/units/explorer.PNG', 'assets/units/grom.PNG', 'assets/units/vzryvatel.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['2', '5', '9'],
     ),
     Faction(
       name: 'Эльфы',
@@ -65,7 +63,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Пикси', 'Грифон', 'Энт'],
       unitsAssets: ['assets/units/pixi.PNG', 'assets/units/grifon.PNG', 'assets/units/ent.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['1', '3', '6'],
     ),
     Faction(
       name: 'Наги',
@@ -74,7 +72,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Краки'],
       unitsAssets: ['assets/units/kraki.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['1'],
     ),
     Faction(
       name: 'Гремлины',
@@ -83,7 +81,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Вышибала', 'Наливала', 'Летала'],
       unitsAssets: ['assets/units/vyshivabla.PNG', 'assets/units/nalivala.PNG', 'assets/units/letala.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['1', '4', '9'],
     ),
     Faction(
       name: 'Механизмы',
@@ -92,7 +90,7 @@ class Faction {
       resources: ['Дерево', 'Золото'],
       units: ['Ядро', 'Крушитель', 'Колосс'],
       unitsAssets: ['assets/units/yadro.PNG', 'assets/units/krushitel.PNG', 'assets/units/koloss.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['1', '4', '0'],
     ),
     Faction(
       name: 'Элементали',
@@ -101,7 +99,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Зефира', 'Тур', 'Джазир', 'Майя'],
       unitsAssets: ['assets/units/zefira.PNG', 'assets/units/tur.PNG', 'assets/units/dzazir.PNG', 'assets/units/maya.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['2', '1', '0', '7'],
     ),
     Faction(
       name: 'Демоны',
@@ -110,7 +108,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Бес', 'Суккуб', 'Мясник'],
       unitsAssets: ['assets/units/bes.PNG', 'assets/units/sukkub.PNG', 'assets/units/myasnik.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['1', '4', '7'],
     ),
     Faction(
       name: 'Полурослики',
@@ -119,7 +117,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Гладиатор', 'Легионер'],
       unitsAssets: ['assets/units/gladiator.PNG', 'assets/units/legioner.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['3', '6'],
     ),
     Faction(
       name: 'Культисты',
@@ -128,7 +126,7 @@ class Faction {
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Проповедник', 'Паломник'],
       unitsAssets: ['assets/units/propovednik.PNG', 'assets/units/palomnik.PNG'],
-      unitsPower: ['1', '2', '2'],
+      unitsPower: ['3', '0'],
     ),
   ];
 

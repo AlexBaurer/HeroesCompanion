@@ -38,11 +38,6 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     });
   }
 
-  void _changeResource(String key, int delta) {
-    setState(() {
-      _resources[key] = (_resources[key]! + delta).clamp(0, 999);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
