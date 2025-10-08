@@ -38,6 +38,24 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     });
   }
 
+  void _showModalWindow(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 500,
+          color: Colors.white,
+          child: Center(
+            child: Text(
+              'This is a modal window',
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +115,29 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
 
                 // _buildArmyBlocksPanel(_faction),
                 ArmyBlockPanel(faction: _faction),
+                const SizedBox(height: 4),
+
+                Center(
+                  child: SizedBox(
+                    width: 200,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    
+                      onPressed: () {
+                        _showModalWindow(context);
+                      },
+                        child: Text('МОДИФИКАТОРЫ СИЛЫ', style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ),
+                
                 const SizedBox(height: 4),
 
                 // Заголовок ресурсов
