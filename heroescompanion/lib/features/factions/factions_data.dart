@@ -22,7 +22,7 @@ class Faction {
   static const all = [
     Faction(
       name: 'Люди',
-      backgroundPicture: 'assets/faction_background/people.PNG',
+      backgroundPicture: 'assets/faction_background/humans.PNG',
       primaryColor: Color.fromARGB(255, 190, 87, 55),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Солдат', 'Латник', 'Архимаг'],
@@ -31,7 +31,7 @@ class Faction {
     ),
     Faction(
       name: 'Нежить',
-      backgroundPicture: 'assets/faction_background/people.PNG',
+      backgroundPicture: 'assets/faction_background/necros.PNG',
       primaryColor: Color.fromARGB(255, 8, 138, 170),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Скелет', 'Палач', 'Лич'],
@@ -40,7 +40,7 @@ class Faction {
     ),
     Faction(
       name: 'Гномы',
-      backgroundPicture: 'assets/faction_background/people.PNG',
+      backgroundPicture: 'assets/faction_background/gnomes.PNG',
       primaryColor: Color.fromARGB(255, 100, 100, 100),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Механик', 'Стреколёт', 'Автоматон', 'Мехозавр'],
@@ -49,7 +49,7 @@ class Faction {
     ),
     Faction(
       name: 'Орки',
-      backgroundPicture: 'assets/faction_background/people.PNG',
+      backgroundPicture: 'assets/faction_background/orcs.PNG',
       primaryColor: Color.fromARGB(255, 219, 173, 19),
       resources: ['Дерево', 'Железо', 'Золото', 'Ярость'],
       units: ['Разведчик', 'Громила', 'Взрыватель'],
@@ -58,7 +58,7 @@ class Faction {
     ),
     Faction(
       name: 'Эльфы',
-      backgroundPicture: 'assets/faction_background/people.PNG',
+      backgroundPicture: 'assets/faction_background/elfs.PNG',
       primaryColor: Color.fromARGB(255, 115, 46, 180),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Пикси', 'Грифон', 'Энт'],
@@ -67,7 +67,7 @@ class Faction {
     ),
     Faction(
       name: 'Наги',
-      backgroundPicture: 'assets/faction_background/people.PNG',
+      backgroundPicture: 'assets/faction_background/nags.PNG',
       primaryColor: Color.fromARGB(255, 0, 198, 212),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Краки'],

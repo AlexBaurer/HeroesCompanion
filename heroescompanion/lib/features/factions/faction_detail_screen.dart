@@ -3,6 +3,7 @@ import 'package:heroescompanion/features/factions/factions_data.dart';
 import 'package:heroescompanion/features/factions/reorder_list.dart';
 import 'package:heroescompanion/features/factions/resource_counter_wheel.dart';
 import 'package:heroescompanion/features/factions/army_block_panel.dart';
+import 'package:heroescompanion/features/factions/strenght_mod_modal_menu.dart';
 
 class FactionDetailScreen extends StatefulWidget {
   final String factionName;
@@ -20,6 +21,8 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
   // Карта: "название ресурса" → значение
   Map<String, int> _resources = {};
 
+  final Map<String, List<bool>> _strengthModifierStates = {};
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,14 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     _resources = {
       for (final res in _faction.resources) res: 0,
     };
+
+    _initializeStrengthModifierStates(_faction.name);
+  }
+
+  void _initializeStrengthModifierStates(String factionName) {
+    if (!_strengthModifierStates.containsKey(factionName)) {
+      _strengthModifierStates[factionName] = List<bool>.filled(3, false);
+    }
   }
 
   void _nextRound() {
@@ -39,18 +50,24 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
   }
 
   void _showModalWindow(BuildContext context) {
-    showModalBottomSheet(
+
+    _initializeStrengthModifierStates(_faction.name);
+
+    showModalBottomSheet(      
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          height: 500,
-          color: Colors.white,
-          child: Center(
-            child: Text(
-              'This is a modal window',
-              style: TextStyle(fontSize: 20),
-            ),
-          ),
+        return StrengthModModalMenu(
+          faction: _faction,
+          initialCheckboxValues: _strengthModifierStates[_faction.name]!,
+          onFactionUpdated: (Faction updatedFaction) {
+            setState(() {
+              _faction = updatedFaction;
+              // Save checkbox states
+              _strengthModifierStates[_faction.name] = List<bool>.from(
+                (_strengthModifierStates[_faction.name] ?? List<bool>.filled(3, false))
+              );
+            });
+          },
         );
       },
     );
@@ -82,12 +99,12 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 109, 109, 109), // Add your desired background color here
+                color: const Color.fromARGB(255, 109, 109, 109),
               ),
               child: Opacity(
-                opacity: 0.2, // Adjust this value to control transparency (0.0 to 1.0)
+                opacity: 0.2, 
                 child: Image.asset(
-                  _faction.backgroundPicture, // Replace with your actual asset path
+                  _faction.backgroundPicture,
                   fit: BoxFit.cover,
                 ),
               ),
