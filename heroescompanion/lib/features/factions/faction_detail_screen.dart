@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:heroescompanion/features/factions/factions_data.dart';
 import 'package:heroescompanion/features/factions/reorder_list.dart';
 import 'package:heroescompanion/features/factions/resource_counter_wheel.dart';
@@ -21,24 +22,40 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
   // Карта: "название ресурса" → значение
   Map<String, int> _resources = {};
 
-  final Map<String, List<bool>> _strengthModifierStates = {};
+  final Map<String, List<dynamic>> _modifierStates = {};
 
   @override
   void initState() {
     super.initState();
     _faction = Faction.fromName(widget.factionName) ?? Faction.all[0];
-    
+  
     // Инициализируем ресурсы нулями
     _resources = {
       for (final res in _faction.resources) res: 0,
     };
 
-    _initializeStrengthModifierStates(_faction.name);
+    _initializeModifierStates(_faction.name);
   }
 
-  void _initializeStrengthModifierStates(String factionName) {
-    if (!_strengthModifierStates.containsKey(factionName)) {
-      _strengthModifierStates[factionName] = List<bool>.filled(3, false);
+  void _initializeModifierStates(String factionName) {
+    if (!_modifierStates.containsKey(factionName)) {
+      // Initialize with default values for all modifiers
+      // false for toggle modifiers, 0 for counter modifiers
+      final toggleModifiersCount = _faction.strengthModifiers
+          .where((modifier) => modifier.type == 'toggle')
+          .length;
+      
+      final counterModifiersCount = _faction.strengthModifiers
+          .where((modifier) => modifier.type == 'counter')
+          .length;
+      
+      final totalModifiers = toggleModifiersCount + counterModifiersCount;
+      _modifierStates[factionName] = List<dynamic>.filled(totalModifiers, false);
+      
+      // Set counter modifiers to 0
+      for (int i = toggleModifiersCount; i < totalModifiers; i++) {
+        _modifierStates[factionName]![i] = 0;
+      }
     }
   }
 
@@ -51,21 +68,21 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
 
   void _showModalWindow(BuildContext context) {
 
-    _initializeStrengthModifierStates(_faction.name);
+    _initializeModifierStates(_faction.name);
 
-    showModalBottomSheet(      
+    showModalBottomSheet(     
       context: context,
       builder: (BuildContext context) {
         return StrengthModModalMenu(
           faction: _faction,
-          initialCheckboxValues: _strengthModifierStates[_faction.name]!,
+          modifierStates: _modifierStates,
+          factionName: _faction.name,
           onFactionUpdated: (Faction updatedFaction) {
             setState(() {
-              _faction = updatedFaction;
-              // Save checkbox states
-              _strengthModifierStates[_faction.name] = List<bool>.from(
-                (_strengthModifierStates[_faction.name] ?? List<bool>.filled(3, false))
-              );
+              // Faction is updated, refresh the UI
+              if (kDebugMode) {
+                debugPrint('Faction updated through modal');
+              }
             });
           },
         );
@@ -73,9 +90,35 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     );
   }
 
+  void _logFactionDetails(String context) {
+    if (kDebugMode) {
+      debugPrint('=== Faction Details ($_round) [$context] ===');
+      debugPrint('  Name: ${_faction.name}');
+      // debugPrint('  Background Picture: ${_faction.backgroundPicture}');
+      // debugPrint('  Primary Color: ${_faction.primaryColor}');
+      // debugPrint('  Resources: ${_faction.resources}');
+      // debugPrint('  Resource Values: $_resources');
+      debugPrint('  Units: ${_faction.units}');
+      // debugPrint('  Unit Assets: ${_faction.unitsAssets}');
+      debugPrint('  Unit Powers: ${_faction.unitsPower}');
+      debugPrint('  Strength Modifiers Count: ${_faction.strengthModifiers.length}');
+      for (var i = 0; i < _faction.strengthModifiers.length; i++) {
+        final modifier = _faction.strengthModifiers[i];
+        debugPrint('    Modifier $i: ${modifier.unitName} (${modifier.type})');
+        if (modifier is ToggleStrengthModifier) {
+          debugPrint('      Enabled: ${modifier.isEnabled}');
+        } else if (modifier is CounterStrengthModifier) {
+          debugPrint('      Count: ${modifier.count}');
+        }
+      }
+      debugPrint('========================');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    _logFactionDetails('build');
 
     final List<String> resourceImages = [
           'assets/wood.PNG',
@@ -131,6 +174,7 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
                 const SizedBox(height: 14),
 
                 // _buildArmyBlocksPanel(_faction),
+                
                 ArmyBlockPanel(faction: _faction),
                 const SizedBox(height: 4),
 

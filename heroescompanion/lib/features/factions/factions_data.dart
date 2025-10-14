@@ -1,5 +1,85 @@
 import 'package:flutter/material.dart';
 
+
+abstract class StrengthModifier {
+  String get unitName;
+  String get type;
+  int applyModifier(int basePower);
+  bool get isEnabled;
+  void toggle();
+}
+
+// Checkbox-based modifier (simple toggle)
+class ToggleStrengthModifier implements StrengthModifier {
+  @override
+  final String unitName;
+  final int basePower;
+  final int bonusPower;
+  bool _isEnabled;
+
+  ToggleStrengthModifier({
+    required this.unitName,
+    required this.basePower,
+    required this.bonusPower,
+    bool isEnabled = false,
+  }) : _isEnabled = isEnabled;
+
+  @override
+  String get type => 'toggle';
+
+  @override
+  int applyModifier(int basePower) {
+    return _isEnabled ? bonusPower : basePower;
+  }
+
+  @override
+  bool get isEnabled => _isEnabled;
+
+  @override
+  void toggle() {
+    _isEnabled = !_isEnabled;
+  }
+}
+
+// Counter-based modifier (incremental boost)
+class CounterStrengthModifier implements StrengthModifier {
+  @override
+  final String unitName;
+  final int basePower;
+  final int powerPerCount;
+  final int maxCount;
+  int _count;
+
+  CounterStrengthModifier({
+    required this.unitName,
+    required this.basePower,
+    this.powerPerCount = 1,
+    this.maxCount = 99,
+    int count = 0,
+  }) : _count = count;
+
+  @override
+  String get type => 'counter';
+
+  @override
+  int applyModifier(int basePower) {
+    return basePower + (_count * powerPerCount);
+  }
+
+  @override
+  bool get isEnabled => _count > 0;
+
+  @override
+  void toggle() {
+    _count = (_count + 1) % (maxCount + 1);
+  }
+
+  int get count => _count;
+  set count(int value) {
+    _count = value.clamp(0, maxCount);
+  }
+}
+
 class Faction {
   final String name;
   final String backgroundPicture;
@@ -8,6 +88,7 @@ class Faction {
   final List<String> units;
   final List<String> unitsAssets;
   final List<String> unitsPower;
+  final List<StrengthModifier> strengthModifiers;
 
   const Faction({
     required this.name,
@@ -17,9 +98,10 @@ class Faction {
     required this.units,
     required this.unitsAssets,
     required this.unitsPower,
+    this.strengthModifiers = const [],
     });
 
-  static const all = [
+  static final all = [
     Faction(
       name: 'Люди',
       backgroundPicture: 'assets/faction_background/humans.PNG',
@@ -28,6 +110,11 @@ class Faction {
       units: ['Солдат', 'Латник', 'Архимаг'],
       unitsAssets: ['assets/units/soldier.PNG', 'assets/units/latnik.PNG', 'assets/units/archimage.PNG'],
       unitsPower: ['2', '3', '5'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Солдат', basePower: 2, bonusPower: 3),
+        ToggleStrengthModifier(unitName: 'Латник', basePower: 3, bonusPower: 4),
+        ToggleStrengthModifier(unitName: 'Архимаг', basePower: 5, bonusPower: 7),
+      ],
     ),
     Faction(
       name: 'Нежить',
@@ -37,6 +124,10 @@ class Faction {
       units: ['Скелет', 'Палач', 'Лич'],
       unitsAssets: ['assets/units/skeleton.PNG', 'assets/units/paladin.PNG', 'assets/units/lich.PNG'],
       unitsPower: ['1', '0', '5'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Скелет', basePower: 1, bonusPower: 2),
+        CounterStrengthModifier(unitName: 'Палач', basePower: 0),
+      ],
     ),
     Faction(
       name: 'Гномы',
@@ -46,6 +137,11 @@ class Faction {
       units: ['Механик', 'Стреколёт', 'Автоматон', 'Мехозавр'],
       unitsAssets: ['assets/units/mechanic.PNG', 'assets/units/skarlat.PNG', 'assets/units/automaton.PNG', 'assets/units/mechazavr.PNG'],
       unitsPower: ['0', '2', '4', '5'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Стреколёт', basePower: 2, bonusPower: 3),
+        ToggleStrengthModifier(unitName: 'Автоматон', basePower: 4, bonusPower: 5),
+        CounterStrengthModifier(unitName: 'Мехозавр', basePower: 5),
+      ],
     ),
     Faction(
       name: 'Орки',
@@ -55,8 +151,11 @@ class Faction {
       units: ['Разведчик', 'Громила', 'Взрыватель'],
       unitsAssets: ['assets/units/explorer.PNG', 'assets/units/grom.PNG', 'assets/units/vzryvatel.PNG'],
       unitsPower: ['2', '5', '9'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Разведчик', basePower: 2, bonusPower: 4),
+      ]
     ),
-    Faction(
+    const Faction(
       name: 'Эльфы',
       backgroundPicture: 'assets/faction_background/elfs.PNG',
       primaryColor: Color.fromARGB(255, 115, 46, 180),
@@ -65,7 +164,7 @@ class Faction {
       unitsAssets: ['assets/units/pixi.PNG', 'assets/units/grifon.PNG', 'assets/units/ent.PNG'],
       unitsPower: ['1', '3', '6'],
     ),
-    Faction(
+    const Faction(
       name: 'Наги',
       backgroundPicture: 'assets/faction_background/nags.PNG',
       primaryColor: Color.fromARGB(255, 0, 198, 212),
@@ -82,6 +181,9 @@ class Faction {
       units: ['Вышибала', 'Наливала', 'Летала'],
       unitsAssets: ['assets/units/vyshivabla.PNG', 'assets/units/nalivala.PNG', 'assets/units/letala.PNG'],
       unitsPower: ['1', '4', '9'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Вышибала', basePower: 1, bonusPower: 3),
+      ]
     ),
     Faction(
       name: 'Механизмы',
@@ -90,7 +192,12 @@ class Faction {
       resources: ['Дерево', 'Золото'],
       units: ['Ядро', 'Крушитель', 'Колосс'],
       unitsAssets: ['assets/units/yadro.PNG', 'assets/units/krushitel.PNG', 'assets/units/koloss.PNG'],
-      unitsPower: ['1', '4', '0'],
+      unitsPower: ['1', '4', '7'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Ядро', basePower: 1, bonusPower: 2),
+        CounterStrengthModifier(unitName: 'Крушитель', basePower: 4),
+        CounterStrengthModifier(unitName: 'Колосс', basePower: 7)
+      ]
     ),
     Faction(
       name: 'Элементали',
@@ -100,6 +207,13 @@ class Faction {
       units: ['Зефира', 'Тур', 'Джазир', 'Майя'],
       unitsAssets: ['assets/units/zefira.PNG', 'assets/units/tur.PNG', 'assets/units/dzazir.PNG', 'assets/units/maya.PNG'],
       unitsPower: ['2', '1', '0', '7'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Зефира', basePower: 2, bonusPower: 3),
+        ToggleStrengthModifier(unitName: 'Тур', basePower: 1, bonusPower: 2),
+        CounterStrengthModifier(unitName: 'Джазир', basePower: 0, powerPerCount: 3),
+        ToggleStrengthModifier(unitName: 'Мaйя (Первое улучшение)', basePower: 7, bonusPower: 10),
+        ToggleStrengthModifier(unitName: 'Мaйя (Второе улучшение)', basePower: 10, bonusPower: 14),
+      ]
     ),
     Faction(
       name: 'Демоны',
@@ -109,6 +223,10 @@ class Faction {
       units: ['Бес', 'Суккуб', 'Мясник'],
       unitsAssets: ['assets/units/bes.PNG', 'assets/units/sukkub.PNG', 'assets/units/myasnik.PNG'],
       unitsPower: ['1', '4', '7'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Суккуб', basePower: 4, bonusPower: 5),
+        ToggleStrengthModifier(unitName: 'Мясник', basePower: 7, bonusPower: 11),
+      ]
     ),
     Faction(
       name: 'Полурослики',
@@ -118,6 +236,11 @@ class Faction {
       units: ['Гладиатор', 'Легионер'],
       unitsAssets: ['assets/units/gladiator.PNG', 'assets/units/legioner.PNG'],
       unitsPower: ['3', '6'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Гладиатор', basePower: 3, bonusPower: 4),
+        ToggleStrengthModifier(unitName: 'Легионер (Первое улучшение)', basePower: 6, bonusPower: 8),
+        ToggleStrengthModifier(unitName: 'Легионер (Второе улучшение)', basePower: 8, bonusPower: 10),
+      ]
     ),
     Faction(
       name: 'Культисты',
@@ -127,10 +250,47 @@ class Faction {
       units: ['Проповедник', 'Паломник'],
       unitsAssets: ['assets/units/propovednik.PNG', 'assets/units/palomnik.PNG'],
       unitsPower: ['3', '0'],
+      strengthModifiers: [
+        ToggleStrengthModifier(unitName: 'Проповедник (Первое улучшение)', basePower: 3, bonusPower: 4),
+        ToggleStrengthModifier(unitName: 'Проповедник (Второе улучшение)', basePower: 4, bonusPower: 5),
+        ToggleStrengthModifier(unitName: 'Паломник (Горы)', basePower: 0, bonusPower: 4),
+        ToggleStrengthModifier(unitName: 'Паломник (Лес)', basePower: 0, bonusPower: 6),
+        ToggleStrengthModifier(unitName: 'Паломник (Вода)', basePower: 0, bonusPower: 8),
+        ToggleStrengthModifier(unitName: 'Паломник (Пустыня)', basePower: 0, bonusPower: 10),
+      ]
     ),
   ];
 
   static Faction? fromName(String name) {
     return all.firstWhere((f) => f.name == name);
   }
+
+  int getModifiedPower(String unitName) {
+    final basePower = int.tryParse(unitsPower[units.indexOf(unitName)]) ?? 0;
+    final modifier = strengthModifiers.firstWhere(
+      (mod) => mod.unitName == unitName,
+      orElse: () => NullModifier(unitName: unitName, basePower: basePower),
+    );
+    return modifier.applyModifier(basePower);
+  }
+}
+
+class NullModifier implements StrengthModifier {
+  @override
+  final String unitName;
+  final int basePower;
+
+  NullModifier({required this.unitName, required this.basePower});
+
+  @override
+  String get type => 'none';
+
+  @override
+  int applyModifier(int basePower) => basePower;
+
+  @override
+  bool get isEnabled => false;
+
+  @override
+  void toggle() {}
 }

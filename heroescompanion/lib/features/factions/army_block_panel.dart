@@ -33,7 +33,12 @@ class _ArmyBlockPanelState extends State<ArmyBlockPanel> {
     for (int i = 0; i < widget.faction.units.length; i++) {
       String unit = widget.faction.units[i];
       int power = int.tryParse(widget.faction.unitsPower[i]) ?? 0;
-      strength += (_totalUnits[unit] ?? 0) * power;
+      if (widget.faction.name != 'Наги') {
+        strength += (_totalUnits[unit] ?? 0) * power;
+      }
+      else {
+        strength += (_totalUnits[unit] ?? 0) * (_totalUnits[unit] ?? 0);
+      }
     }
     return strength;
   }
@@ -44,7 +49,12 @@ class _ArmyBlockPanelState extends State<ArmyBlockPanel> {
     for (int i = 0; i < widget.faction.units.length; i++) {
       String unit = widget.faction.units[i];
       int power = int.tryParse(widget.faction.unitsPower[i]) ?? 0;
-      strength += (_deployedUnits[unit] ?? 0) * power;
+      if (widget.faction.name != 'Наги') {
+        strength += (_deployedUnits[unit] ?? 0) * power;
+      }
+      else {
+        strength += (_deployedUnits[unit] ?? 0) * (_deployedUnits[unit] ?? 0);
+      }
     }
     return strength;
   }

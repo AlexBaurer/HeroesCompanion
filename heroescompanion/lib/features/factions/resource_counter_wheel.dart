@@ -54,6 +54,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
           'assets/wood.PNG',
           'assets/iron.PNG',
           'assets/gold.PNG',
+          'assets/fury.PNG'
         ];
         String backImage = ''; // Empty by default
 
@@ -63,6 +64,8 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
       backImage = resourcesAssets[1];
     } else if (widget.resource == 'Золото'){
       backImage = resourcesAssets[2];
+    } else if (widget.resource == 'Ярость'){
+      backImage = resourcesAssets[3];
     }
     // For any other resource, backImage remains empty
 
