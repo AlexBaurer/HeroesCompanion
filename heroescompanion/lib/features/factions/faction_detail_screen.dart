@@ -67,7 +67,6 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
   }
 
   void _showModalWindow(BuildContext context) {
-
     _initializeModifierStates(_faction.name);
 
     showModalBottomSheet(     
@@ -79,10 +78,10 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
           factionName: _faction.name,
           onFactionUpdated: (Faction updatedFaction) {
             setState(() {
-              // Faction is updated, refresh the UI
-              if (kDebugMode) {
-                debugPrint('Faction updated through modal');
-              }
+              // Create a new faction instance with updated modifiers
+              _faction = _faction.copyWith(
+                strengthModifiers: updatedFaction.strengthModifiers,
+              );
             });
           },
         );
@@ -94,12 +93,7 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     if (kDebugMode) {
       debugPrint('=== Faction Details ($_round) [$context] ===');
       debugPrint('  Name: ${_faction.name}');
-      // debugPrint('  Background Picture: ${_faction.backgroundPicture}');
-      // debugPrint('  Primary Color: ${_faction.primaryColor}');
-      // debugPrint('  Resources: ${_faction.resources}');
-      // debugPrint('  Resource Values: $_resources');
       debugPrint('  Units: ${_faction.units}');
-      // debugPrint('  Unit Assets: ${_faction.unitsAssets}');
       debugPrint('  Unit Powers: ${_faction.unitsPower}');
       debugPrint('  Strength Modifiers Count: ${_faction.strengthModifiers.length}');
       for (var i = 0; i < _faction.strengthModifiers.length; i++) {
@@ -107,6 +101,7 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
         debugPrint('    Modifier $i: ${modifier.unitName} (${modifier.type})');
         if (modifier is ToggleStrengthModifier) {
           debugPrint('      Enabled: ${modifier.isEnabled}');
+          debugPrint('      powernew: ${modifier}');
         } else if (modifier is CounterStrengthModifier) {
           debugPrint('      Count: ${modifier.count}');
         }
@@ -172,8 +167,6 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 14),
-
-                // _buildArmyBlocksPanel(_faction),
                 
                 ArmyBlockPanel(faction: _faction),
                 const SizedBox(height: 4),

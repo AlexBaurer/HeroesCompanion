@@ -19,12 +19,35 @@ class _ArmyBlockPanelState extends State<ArmyBlockPanel> {
   @override
   void initState() {
     super.initState();
+    _initializeUnitMaps();
+  }
+
+  @override
+  void didUpdateWidget(covariant ArmyBlockPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reinitialize if the faction has changed
+    if (oldWidget.faction != widget.faction) {
+      _initializeUnitMaps();
+    }
+  }
+
+  void _initializeUnitMaps() {
     // Initialize maps with zeros for each unit type
+    Map<String, int> newTotalUnits = {};
+    Map<String, int> newDeployedUnits = {};
+    
     for (int i = 0; i < widget.faction.units.length; i++) {
       String unit = widget.faction.units[i];
-      _totalUnits[unit] = 0;
-      _deployedUnits[unit] = 0;
+      newTotalUnits[unit] = _totalUnits[unit] ?? 0;
+      newDeployedUnits[unit] = _deployedUnits[unit] ?? 0;
     }
+    
+    _totalUnits = newTotalUnits;
+    _deployedUnits = newDeployedUnits;
+  }
+
+  int getModifiedPower(String unitName) {
+    return widget.faction.getModifiedPower(unitName);
   }
 
   // Calculate total army strength (sum of power of all total units)
@@ -32,7 +55,7 @@ class _ArmyBlockPanelState extends State<ArmyBlockPanel> {
     int strength = 0;
     for (int i = 0; i < widget.faction.units.length; i++) {
       String unit = widget.faction.units[i];
-      int power = int.tryParse(widget.faction.unitsPower[i]) ?? 0;
+      int power = getModifiedPower(unit);
       if (widget.faction.name != 'Наги') {
         strength += (_totalUnits[unit] ?? 0) * power;
       }
@@ -48,7 +71,7 @@ class _ArmyBlockPanelState extends State<ArmyBlockPanel> {
     int strength = 0;
     for (int i = 0; i < widget.faction.units.length; i++) {
       String unit = widget.faction.units[i];
-      int power = int.tryParse(widget.faction.unitsPower[i]) ?? 0;
+      int power = getModifiedPower(unit);
       if (widget.faction.name != 'Наги') {
         strength += (_deployedUnits[unit] ?? 0) * power;
       }

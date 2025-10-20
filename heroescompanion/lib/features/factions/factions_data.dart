@@ -210,9 +210,9 @@ class Faction {
       strengthModifiers: [
         ToggleStrengthModifier(unitName: 'Зефира', basePower: 2, bonusPower: 3),
         ToggleStrengthModifier(unitName: 'Тур', basePower: 1, bonusPower: 2),
-        CounterStrengthModifier(unitName: 'Джазир', basePower: 0, powerPerCount: 3),
-        ToggleStrengthModifier(unitName: 'Мaйя (Первое улучшение)', basePower: 7, bonusPower: 10),
-        ToggleStrengthModifier(unitName: 'Мaйя (Второе улучшение)', basePower: 10, bonusPower: 14),
+        ToggleStrengthModifier(unitName: 'Майя (Первое улучшение)', basePower: 7, bonusPower: 10),
+        ToggleStrengthModifier(unitName: 'Майя (Второе улучшение)', basePower: 10, bonusPower: 14),
+        CounterStrengthModifier(unitName: 'Джазир', basePower: 0, powerPerCount: 3),        
       ]
     ),
     Faction(
@@ -261,17 +261,58 @@ class Faction {
     ),
   ];
 
-  static Faction? fromName(String name) {
-    return all.firstWhere((f) => f.name == name);
+  int getModifiedPower(String unitName) {
+    // Get base power
+    final unitIndex = units.indexOf(unitName);
+    if (unitIndex == -1) return 0;
+    
+    final basePower = int.tryParse(unitsPower[unitIndex]) ?? 0;
+
+    final applicableModifiers = strengthModifiers.where((modifier) {
+      return modifier.unitName == unitName || modifier.unitName.startsWith(unitName);
+    }).toList();
+
+    // If no modifiers apply to this unit, return base power
+    if (applicableModifiers.isEmpty) {
+      return basePower;
+    }
+
+    // Apply all applicable modifiers to the base power
+    int currentPower = basePower;
+    for (var modifier in applicableModifiers) {
+      currentPower = modifier.applyModifier(currentPower);
+    }
+    
+    return currentPower;
   }
 
-  int getModifiedPower(String unitName) {
-    final basePower = int.tryParse(unitsPower[units.indexOf(unitName)]) ?? 0;
-    final modifier = strengthModifiers.firstWhere(
-      (mod) => mod.unitName == unitName,
-      orElse: () => NullModifier(unitName: unitName, basePower: basePower),
+  Faction copyWith({
+    String? name,
+    String? backgroundPicture,
+    Color? primaryColor,
+    List<String>? resources,
+    List<String>? units,
+    List<String>? unitsAssets,
+    List<String>? unitsPower,
+    List<StrengthModifier>? strengthModifiers,
+  }) {
+    return Faction(
+      name: name ?? this.name,
+      backgroundPicture: backgroundPicture ?? this.backgroundPicture,
+      primaryColor: primaryColor ?? this.primaryColor,
+      resources: resources ?? this.resources,
+      units: units ?? this.units,
+      unitsAssets: unitsAssets ?? this.unitsAssets,
+      unitsPower: unitsPower ?? this.unitsPower,
+      strengthModifiers: strengthModifiers ?? this.strengthModifiers,
     );
-    return modifier.applyModifier(basePower);
+  }
+
+  static Faction? fromName(String name) {
+    return all.firstWhere(
+      (faction) => faction.name == name,
+      // orElse: () => null,
+    );
   }
 }
 

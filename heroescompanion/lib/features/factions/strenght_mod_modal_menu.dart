@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:heroescompanion/features/factions/factions_data.dart';
 
 class StrengthModModalMenu extends StatefulWidget {
@@ -29,7 +30,7 @@ class _StrengthModModalMenuState extends State<StrengthModModalMenu> {
     _modifiers = widget.faction.strengthModifiers.map((modifier) {
       if (modifier is ToggleStrengthModifier) {
         return ToggleStrengthModifier(
-          unitName: modifier.unitName,
+          unitName: modifier.unitName,          
           basePower: modifier.basePower,
           bonusPower: modifier.bonusPower,
           isEnabled: _getModifierState(modifier.unitName, modifier.type),
@@ -37,7 +38,7 @@ class _StrengthModModalMenuState extends State<StrengthModModalMenu> {
       } else if (modifier is CounterStrengthModifier) {
         final counterModifier = modifier as CounterStrengthModifier;
         return CounterStrengthModifier(
-          unitName: counterModifier.unitName,
+          unitName: counterModifier.unitName,          
           basePower: counterModifier.basePower,
           powerPerCount: counterModifier.powerPerCount,
           maxCount: counterModifier.maxCount,
@@ -220,7 +221,22 @@ class _StrengthModModalMenuState extends State<StrengthModModalMenu> {
   }
 
   void _updateFaction() {
-    // Notify parent widget about the updates (no need to create new faction object)
-    widget.onFactionUpdated(widget.faction);
+    // Create a new faction with updated modifiers and notify parent
+    final updatedFaction = widget.faction.copyWith(
+      strengthModifiers: _modifiers,
+    );
+
+    if (kDebugMode) {
+      debugPrint('Updating faction with modifiers:');
+      for (var modifier in _modifiers) {
+        if (modifier is ToggleStrengthModifier) {
+          debugPrint('  ${modifier.unitName}: ${modifier.isEnabled}');
+        } else if (modifier is CounterStrengthModifier) {
+          debugPrint('  ${modifier.unitName}: ${modifier.count}');
+        }
+      }
+    }
+    
+    widget.onFactionUpdated(updatedFaction);
   }
 }
