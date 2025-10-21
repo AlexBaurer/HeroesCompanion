@@ -36,7 +36,7 @@ class _StrengthModModalMenuState extends State<StrengthModModalMenu> {
           isEnabled: _getModifierState(modifier.unitName, modifier.type),
         );
       } else if (modifier is CounterStrengthModifier) {
-        final counterModifier = modifier as CounterStrengthModifier;
+        final counterModifier = modifier;
         return CounterStrengthModifier(
           unitName: counterModifier.unitName,          
           basePower: counterModifier.basePower,

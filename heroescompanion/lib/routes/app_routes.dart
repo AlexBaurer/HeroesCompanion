@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heroescompanion/features/main_menu/presentation/main_menu_screen.dart';
 import 'package:heroescompanion/features/factions/faction_detail_screen.dart';
+import 'package:heroescompanion/features/scores_bd/score_screen.dart';
 
 class AppRoutes {
   static const String mainMenu = '/';
@@ -17,6 +18,15 @@ class AppRoutes {
         }
         return MaterialPageRoute(
           builder: (_) => FactionDetailScreen(factionName: args),
+        );
+
+      case '/score':
+        final args = settings.arguments as String?;
+        if (args == null) {
+          return _errorRoute('Не указана фракция');
+        }
+        return MaterialPageRoute(
+          builder: (_) => ScoreScreen(factionName: args),
         );
 
       default:

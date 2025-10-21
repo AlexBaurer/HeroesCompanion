@@ -66,6 +66,11 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
     });
   }
 
+  void _finishGame() {
+    debugPrint('_fac ${_faction.name}');
+    Navigator.pushNamed(context, '/score', arguments: _faction.name);
+  }
+
   void _showModalWindow(BuildContext context) {
     _initializeModifierStates(_faction.name);
 
@@ -101,7 +106,6 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
         debugPrint('    Modifier $i: ${modifier.unitName} (${modifier.type})');
         if (modifier is ToggleStrengthModifier) {
           debugPrint('      Enabled: ${modifier.isEnabled}');
-          debugPrint('      powernew: ${modifier}');
         } else if (modifier is CounterStrengthModifier) {
           debugPrint('      Count: ${modifier.count}');
         }
@@ -272,6 +276,27 @@ class _FactionDetailScreenState extends State<FactionDetailScreen> {
   }
 
   Widget _buildNextRoundButton() {
+    if (_round >= 16) {
+      return SizedBox(
+        width: 200,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: _finishGame,
+          child: const Text(
+            'Закончить игру',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+    }
+    
     return SizedBox(
       width: 200,
       child: ElevatedButton(
