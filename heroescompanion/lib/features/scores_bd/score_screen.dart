@@ -13,7 +13,8 @@ class ScoreScreen extends StatefulWidget {
   
 class _ScoreScreenState extends State<ScoreScreen> {
   late Faction _faction;
-  final List<String> _values = List.generate(5, (index) => '');
+  final List<String> _values = List.generate(6, (index) => '');
+  String _playerName = '';
 
   @override
   void initState() {
@@ -35,9 +36,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
   @override
   Widget build(BuildContext context) {
     // Получаем переданный аргумент (название фракции)
-    debugPrint('context ${context}');
-
-    debugPrint('fraca $_faction');
 
     return Scaffold(
       appBar: AppBar(
@@ -47,58 +45,134 @@ class _ScoreScreenState extends State<ScoreScreen> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          // mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.emoji_events, size: 64, color: Colors.blue),
             const SizedBox(height: 16),
-            Text(
-              'Игра завершена!\nФракция: ${_faction.name}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24),
+            SizedBox(
+              width: 250,
+              child: TextField(
+                decoration: const InputDecoration(
+                  hintText: 'Введите имя игрока',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 20),
+                onChanged: (value) {
+                  setState(() {
+                    _playerName = value;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 32),
-            ...List.generate(5, (index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Поле ${index + 1}',
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _values[index] = value;
-                    });
-                  },
-                ),
-              );
-            }),
+            // First row with first three input fields
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildInputFieldWithBackground('assets/score_screen/buildings.PNG', 1),
+                const SizedBox(width: 16),
+                _buildInputFieldWithBackground('assets/score_screen/fundaments.PNG', 2),
+                const SizedBox(width: 16),
+                _buildInputFieldWithBackground('assets/score_screen/resources.PNG', 3),
+              ],
+            ),
             const SizedBox(height: 16),
-            Container(
-              width: 200,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Общий счёт',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '$_total',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+            // Second row with last two input fields and total display
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildInputFieldWithBackground('assets/score_screen/fights.PNG', 4),
+                const SizedBox(width: 16),
+                _buildInputFieldWithBackground('assets/score_screen/artifacts.PNG', 5),
+                const SizedBox(width: 16),
+                _buildTotalDisplay(),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildInputFieldWithBackground(String asset, int index) {
+    return Stack(
+      children: [
+        // Полупрозрачная картинка из ассетов
+        Opacity(
+          opacity: 0.8,
+          child: Image.asset(
+            asset,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
+        // Поле ввода поверх картинки
+        Transform.translate(
+          offset: const Offset(0, 45),
+          child: SizedBox(
+              width: 100,
+              height: 100,
+              child: TextField(
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none, // Убираем границу
+                  enabledBorder: InputBorder.none, // Убираем границу в обычном состоянии
+                  focusedBorder: InputBorder.none, // Убираем границу при фокусе
+                  contentPadding: EdgeInsets.all(8),
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 20),
+                onChanged: (value) {
+                  setState(() {
+                    _values[index] = value;
+                  });
+                },
+              ),
+            ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalDisplay() {
+    return Stack(
+      children: [
+        // Полупрозрачная картинка для отображения суммы
+        Opacity(
+          opacity: 0.8,
+          child: Image.asset(
+            'assets/score_screen/general.PNG',
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
+        // Отображение суммы поверх картинки
+        Transform.translate(
+          offset: const Offset(0, 45),
+          child: Container(
+              width: 100,
+              height: 100,
+              // decoration: BoxDecoration(
+              //   color: Colors.transparent,
+              //   border: Border.all(color: Colors.blue),
+              // ),
+              child:       
+                  Text(
+                    '$_total',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(            
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+        ),
+          ],
+        );
+      
   }
 }
