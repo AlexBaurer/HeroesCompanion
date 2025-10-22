@@ -43,12 +43,39 @@ class MainMenuContent extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
+      child: SingleChildScrollView(
+      child: Column(
         children: [
-          _MenuColumn(items: leftColumn),
-          const SizedBox(width: 16),
-          _MenuColumn(items: rightColumn),
+          Row(
+            children: [
+              _MenuColumn(items: leftColumn),
+              const SizedBox(width: 16),
+              _MenuColumn(items: rightColumn),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/score_history');
+              },
+              child: const Text(
+                'История результатов',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
         ],
+      ),
       ),
     );
   }

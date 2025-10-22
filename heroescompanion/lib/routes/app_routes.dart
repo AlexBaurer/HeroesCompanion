@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heroescompanion/features/main_menu/presentation/main_menu_screen.dart';
 import 'package:heroescompanion/features/factions/faction_detail_screen.dart';
 import 'package:heroescompanion/features/scores_bd/score_screen.dart';
+import 'package:heroescompanion/features/scores_bd/score_history_screen.dart';
 
 class AppRoutes {
   static const String mainMenu = '/';
@@ -28,6 +29,9 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => ScoreScreen(factionName: args),
         );
+
+      case '/score_history':
+        return MaterialPageRoute(builder: (_) => const ScoreHistoryScreen());
 
       default:
         return _errorRoute('Страница не найдена');
