@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:heroescompanion/routes/app_routes.dart';
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -8,137 +7,97 @@ class MainMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('          Герои\nВыбери фракцию'),
+        title: const Text('Heroes Companion'),
         centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
-      body: const MainMenuContent(),
-    );
-  }
-}
-
-class MainMenuContent extends StatelessWidget {
-  const MainMenuContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Список всех фракций/существ
-    final List<String> factions = [
-      'Люди',
-      'Нежить',
-      'Гномы',
-      'Орки',
-      'Эльфы',
-      'Наги',
-      'Гремлины',
-      'Механизмы',
-      'Элементали',
-      'Демоны',
-      'Полурослики',
-      'Культисты',
-    ];
-
-    // Делим на два столбца
-    final leftColumn = factions.sublist(0, 6);
-    final rightColumn = factions.sublist(6, 12);
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-      child: Column(
+      body: Stack(
         children: [
-          Row(
-            children: [
-              _MenuColumn(items: leftColumn),
-              const SizedBox(width: 16),
-              _MenuColumn(items: rightColumn),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          // Background image with semi-transparency
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 109, 109, 109),
+              ),
+              child: Opacity(
+                opacity: 0.2,
+                child: Image.asset(
+                  'assets/faction_background/humans.PNG',
+                  fit: BoxFit.cover,
                 ),
               ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/score_history');
-              },
-              child: const Text(
-                'История результатов',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          // Main content
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        // Navigate to faction choose menu
+                        Navigator.pushNamed(context, '/faction_choose_menu');
+                      },
+                      child: const Text(
+                        'Начать игру',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        // Navigate to score history screen
+                        Navigator.pushNamed(context, '/score_history');
+                      },
+                      child: const Text(
+                        'Записи игр',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ),
+          ),
+          // Settings button at bottom right
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                // TODO: Implement settings functionality
+              },
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.settings),
             ),
           ),
         ],
       ),
-      ),
     );
-  }
-}
-
-class _MenuColumn extends StatelessWidget {
-  final List<String> items;
-
-  const _MenuColumn({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: items.map((item) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: SizedBox(
-              height: 90,
-              width: 160,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _getFactionColor(item),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/faction',
-                    arguments: item,
-                  );
-                },
-                child: Text(
-                  item,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Color _getFactionColor(String faction) {
-    switch (faction) {
-      case 'Люди': return const Color.fromARGB(255, 190, 87, 55);
-      case 'Нежить': return const Color.fromARGB(255, 8, 138, 170);
-      case 'Гномы': return const Color.fromARGB(255, 100, 100, 100);
-      case 'Орки': return const Color.fromARGB(255, 219, 173, 19);
-      case 'Эльфы': return const Color.fromARGB(255, 115, 46, 180);
-      case 'Наги': return const Color.fromARGB(255, 0, 198, 212);
-      case 'Гремлины': return const Color.fromARGB(255, 199, 83, 147);
-      case 'Механизмы': return const Color.fromARGB(255, 145, 182, 77);
-      case 'Элементали': return Colors.red;
-      case 'Демоны': return const Color.fromARGB(255, 76, 47, 124);
-      case 'Полурослики': return const Color.fromARGB(255, 221, 121, 6);
-      case 'Культисты': return const Color.fromARGB(255, 88, 63, 43);
-      default: return Colors.blue;
-    }
   }
 }

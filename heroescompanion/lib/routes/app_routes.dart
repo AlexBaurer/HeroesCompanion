@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:heroescompanion/features/main_menu/presentation/main_menu_screen.dart';
+import 'package:heroescompanion/features/main_menu/presentation/faction_choose_menu.dart';
 import 'package:heroescompanion/features/factions/faction_detail_screen.dart';
 import 'package:heroescompanion/features/scores_bd/score_screen.dart';
 import 'package:heroescompanion/features/scores_bd/score_history_screen.dart';
+import 'package:heroescompanion/features/main_menu/presentation/main_menu_screen.dart';
 
 class AppRoutes {
   static const String mainMenu = '/';
@@ -11,6 +12,9 @@ class AppRoutes {
     switch (settings.name) {
       case mainMenu:
         return MaterialPageRoute(builder: (_) => const MainMenuScreen());
+
+      case '/faction_choose_menu':
+        return MaterialPageRoute(builder: (_) => const FactionChooseMenu());
 
       case '/faction':
         final args = settings.arguments as String?;

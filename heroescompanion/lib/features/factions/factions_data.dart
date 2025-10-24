@@ -104,7 +104,7 @@ class Faction {
   static final all = [
     Faction(
       name: 'Люди',
-      backgroundPicture: 'assets/faction_background/humans.PNG',
+      backgroundPicture: 'assets/faction_background/humans_low.PNG',
       primaryColor: Color.fromARGB(255, 190, 87, 55),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Солдат', 'Латник', 'Архимаг'],
@@ -118,7 +118,7 @@ class Faction {
     ),
     Faction(
       name: 'Нежить',
-      backgroundPicture: 'assets/faction_background/necros.PNG',
+      backgroundPicture: 'assets/faction_background/necros_low.PNG',
       primaryColor: Color.fromARGB(255, 8, 138, 170),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Скелет', 'Палач', 'Лич'],
@@ -131,7 +131,7 @@ class Faction {
     ),
     Faction(
       name: 'Гномы',
-      backgroundPicture: 'assets/faction_background/gnomes.PNG',
+      backgroundPicture: 'assets/faction_background/gnomes_low.PNG',
       primaryColor: Color.fromARGB(255, 100, 100, 100),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Механик', 'Стреколёт', 'Автоматон', 'Мехозавр'],
@@ -145,7 +145,7 @@ class Faction {
     ),
     Faction(
       name: 'Орки',
-      backgroundPicture: 'assets/faction_background/orcs.PNG',
+      backgroundPicture: 'assets/faction_background/orcs_low.PNG',
       primaryColor: Color.fromARGB(255, 219, 173, 19),
       resources: ['Дерево', 'Железо', 'Золото', 'Ярость'],
       units: ['Разведчик', 'Громила', 'Взрыватель'],
@@ -157,7 +157,7 @@ class Faction {
     ),
     const Faction(
       name: 'Эльфы',
-      backgroundPicture: 'assets/faction_background/elfs.PNG',
+      backgroundPicture: 'assets/faction_background/elfs_low.PNG',
       primaryColor: Color.fromARGB(255, 115, 46, 180),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Пикси', 'Грифон', 'Энт'],
@@ -175,7 +175,7 @@ class Faction {
     ),
     Faction(
       name: 'Гремлины',
-      backgroundPicture: 'assets/faction_background/gremlins.PNG',
+      backgroundPicture: 'assets/faction_background/gremlins_low.PNG',
       primaryColor: Color.fromARGB(255, 199, 83, 147),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Вышибала', 'Наливала', 'Летала'],
@@ -187,7 +187,7 @@ class Faction {
     ),
     Faction(
       name: 'Механизмы',
-      backgroundPicture: 'assets/faction_background/mechanisms.PNG',
+      backgroundPicture: 'assets/faction_background/mechanisms_low.PNG',
       primaryColor: Color.fromARGB(255, 145, 182, 77),
       resources: ['Дерево', 'Золото'],
       units: ['Ядро', 'Крушитель', 'Колосс'],
@@ -201,7 +201,7 @@ class Faction {
     ),
     Faction(
       name: 'Элементали',
-      backgroundPicture: 'assets/faction_background/elementals.PNG',
+      backgroundPicture: 'assets/faction_background/elementals_low.PNG',
       primaryColor: Colors.red,
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Зефира', 'Тур', 'Джазир', 'Майя'],
@@ -217,7 +217,7 @@ class Faction {
     ),
     Faction(
       name: 'Демоны',
-      backgroundPicture: 'assets/faction_background/demons.PNG',
+      backgroundPicture: 'assets/faction_background/demons_low.PNG',
       primaryColor: Color.fromARGB(255, 76, 47, 124),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Бес', 'Суккуб', 'Мясник'],
@@ -230,7 +230,7 @@ class Faction {
     ),
     Faction(
       name: 'Полурослики',
-      backgroundPicture: 'assets/faction_background/halflings.PNG',
+      backgroundPicture: 'assets/faction_background/halflings_low.PNG',
       primaryColor: Color.fromARGB(255, 221, 121, 6),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Гладиатор', 'Легионер'],
@@ -244,7 +244,7 @@ class Faction {
     ),
     Faction(
       name: 'Культисты',
-      backgroundPicture: 'assets/faction_background/cultists.PNG',
+      backgroundPicture: 'assets/faction_background/cultists_low.PNG',
       primaryColor: Color.fromARGB(255, 88, 63, 43),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Проповедник', 'Паломник'],
