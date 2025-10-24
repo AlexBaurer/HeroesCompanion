@@ -191,16 +191,100 @@ class _ScoreScreenState extends State<ScoreScreen> {
                 const SizedBox(width: 16),
                 Column(
                   children: [
-                    _buildInputField('Имя 3 игрока', _playerName3),
-                    _factionMenu(_selectedFaction3),
+                    SizedBox(
+                      width: 100,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Имя 3 игрока',
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                        onChanged: (value) {
+                          setState(() {
+                            _playerName3 = value;
+                          });
+                        },
+                      ),
+                    ),
+                    // _factionMenu(_selectedFaction2),
+                    SizedBox(
+                      width: 100,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedFaction3,
+                          items: Faction.all.map((Faction faction) {
+                            return DropdownMenuItem<String>(
+                              value: faction.name,
+                              child: Text(
+                                faction.name,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                _selectedFaction3 = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
                     _buildInputFieldWithBackground('assets/score_screen/general.PNG', 1, flag: false, playerIndex: 3),
                   ],
                 ),
                 const SizedBox(width: 16),
                 Column(
-                  children: [                        
-                    _buildInputField('Имя 4 игрока', _playerName4),
-                    _factionMenu(_selectedFaction4),
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Имя 4 игрока',
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                        onChanged: (value) {
+                          setState(() {
+                            _playerName4 = value;
+                          });
+                        },
+                      ),
+                    ),
+                    // _factionMenu(_selectedFaction2),
+                    SizedBox(
+                      width: 100,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedFaction4,
+                          items: Faction.all.map((Faction faction) {
+                            return DropdownMenuItem<String>(
+                              value: faction.name,
+                              child: Text(
+                                faction.name,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                _selectedFaction4 = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
                     _buildInputFieldWithBackground('assets/score_screen/general.PNG', 1, flag: false, playerIndex: 4),
                   ],
                 ),
@@ -226,54 +310,54 @@ class _ScoreScreenState extends State<ScoreScreen> {
     );
   }
 
-  Widget _factionMenu(String selectedFaction) { 
-    return SizedBox(
-              width: 100,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  value: selectedFaction,
-                  items: Faction.all.map((Faction faction) {
-                    return DropdownMenuItem<String>(
-                      value: faction.name,
-                      child: Text(
-                        faction.name,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        selectedFaction = newValue;
-                      });
-                    }
-                  },
-                ),
-              ),
-            );
-  }
+  // Widget _factionMenu(String selectedFaction) { 
+  //   return SizedBox(
+  //             width: 100,
+  //             child: DropdownButtonHideUnderline(
+  //               child: DropdownButton<String>(
+  //                 isExpanded: true,
+  //                 value: selectedFaction,
+  //                 items: Faction.all.map((Faction faction) {
+  //                   return DropdownMenuItem<String>(
+  //                     value: faction.name,
+  //                     child: Text(
+  //                       faction.name,
+  //                       textAlign: TextAlign.center,
+  //                       style: const TextStyle(fontSize: 10),
+  //                     ),
+  //                   );
+  //                 }).toList(),
+  //                 onChanged: (String? newValue) {
+  //                   if (newValue != null) {
+  //                     setState(() {
+  //                       selectedFaction = newValue;
+  //                     });
+  //                   }
+  //                 },
+  //               ),
+  //             ),
+  //           );
+  // }
 
-  Widget _buildInputField(String hint, String state) {
-    return SizedBox(
-              width: 100,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: hint,
-                  border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-                ),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12),
-                onChanged: (value) {
-                  setState(() {
-                    state = value;
-                  });
-                },
-              ),
-            );
-  }
+  // Widget _buildInputField(String hint, String state) {
+  //   return SizedBox(
+  //             width: 100,
+  //             child: TextField(
+  //               decoration: InputDecoration(
+  //                 hintText: hint,
+  //                 border: const OutlineInputBorder(),
+  //                 contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+  //               ),
+  //               textAlign: TextAlign.center,
+  //               style: const TextStyle(fontSize: 12),
+  //               onChanged: (value) {
+  //                 setState(() {
+  //                   state = value;
+  //                 });
+  //               },
+  //             ),
+  //           );
+  // }
 
   Widget _buildInputFieldWithBackground(String asset, int index, {bool flag = true, int playerIndex = 1}) {
     return Stack(
@@ -437,6 +521,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
             backgroundColor: Colors.green,
           ),
         );
+
+        Navigator.pushNamed(context, '/score_history');
       }
     }
   }
