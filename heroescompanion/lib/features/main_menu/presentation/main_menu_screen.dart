@@ -86,18 +86,106 @@ class MainMenuScreen extends StatelessWidget {
           // Settings button at bottom right
           Positioned(
             bottom: 16,
-            right: 16,
+            left: 16,
             child: FloatingActionButton(
               onPressed: () {
-                // TODO: Implement settings functionality
+                showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const DonationModal();
+                  },
+                );
               },
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
-              child: const Icon(Icons.settings),
+              child: const Icon(Icons.volunteer_activism),
+            ),
+          ),
+          // Positioned(
+          //   bottom: 16,
+          //   right: 16,
+          //   child: FloatingActionButton(
+          //     onPressed: () {
+          //       // TODO: Implement settings functionality
+          //     },
+          //     backgroundColor: Colors.blue,
+          //     foregroundColor: Colors.white,
+          //     child: const Icon(Icons.settings),
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+}
+
+class DonationModal extends StatelessWidget {
+  const DonationModal({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      height: 300,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Поддержать проект',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Вы можете поддержать проект, сделав пожертвование на кошелёк в сети TON:',
+          ),
+          const SizedBox(height: 16),
+          const WalletInfo(
+            currency: 'TON',
+            address: 'UQApUe-U1E-u8tNQhupN2eP8o3NfXF_4X8J1nas4T_c7_J5N',
+          ),
+          const Spacer(),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Закрыть'),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class WalletInfo extends StatelessWidget {
+  final String currency;
+  final String address;
+
+  const WalletInfo({
+    super.key,
+    required this.currency,
+    required this.address,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$currency:',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        SelectableText(
+          address,
+          style: const TextStyle(fontFamily: 'monospace'),
+        ),
+      ],
     );
   }
 }
