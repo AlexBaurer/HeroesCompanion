@@ -166,7 +166,7 @@ class Faction {
     ),
     const Faction(
       name: 'Наги',
-      backgroundPicture: 'assets/faction_background/nags.PNG',
+      backgroundPicture: 'assets/faction_background/nags_low.PNG',
       primaryColor: Color.fromARGB(255, 0, 198, 212),
       resources: ['Дерево', 'Железо', 'Золото'],
       units: ['Краки'],
