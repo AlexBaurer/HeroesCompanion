@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'routes/app_routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app/app_router.dart';
+import 'app/app_theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: HeroesCompanionApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HeroesCompanionApp extends StatelessWidget {
+  const HeroesCompanionApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Герои — Помощник',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      initialRoute: AppRoutes.mainMenu,
-      onGenerateRoute: AppRoutes.onGenerateRoute,
+      theme: AppTheme.light,
+      routerConfig: appRouter,
     );
   }
 }
