@@ -154,6 +154,58 @@ void main() {
     });
   });
 
+  group('armyPower: признак особого расчёта силы', () {
+    test('без поля — стандартный расчёт perUnit', () {
+      final faction = parse(_humansJson);
+
+      expect(faction.armyPowerFormula, ArmyPowerFormula.perUnit);
+    });
+
+    test('Наги: armyPower = nSquared', () {
+      const json = '''
+{
+  "name": "Наги",
+  "gamePart": 2,
+  "color": "#00C6D4",
+  "background": "assets/faction_background/nags_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "kraken", "name": "Краки", "power": 1}
+  ],
+  "armyPower": "nSquared"
+}
+''';
+
+      final faction = parse(json);
+
+      expect(faction.armyPowerFormula, ArmyPowerFormula.nSquared);
+    });
+
+    test('неизвестное значение → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Наги",
+  "gamePart": 2,
+  "color": "#00C6D4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "kraken", "name": "Краки", "power": 1}
+  ],
+  "armyPower": "nPower"
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'armyPower'),
+        ),
+      );
+    });
+  });
+
   group('битый вход', () {
     test('некорректный JSON-синтаксис → FactionSyntaxException', () {
       expect(

@@ -79,6 +79,7 @@ class FactionParser {
     'resources',
     'units',
     'modifiers',
+    'armyPower',
   };
   static const _unitFields = {'id', 'name', 'power'};
   static const _modifierFields = {
@@ -114,6 +115,7 @@ class FactionParser {
     final resources = _readResources(json);
     final units = _readUnits(json);
     final modifiers = _readModifiers(json, units);
+    final armyPower = _readArmyPower(json);
 
     return Faction(
       name: name,
@@ -123,6 +125,7 @@ class FactionParser {
       resources: resources,
       units: units,
       modifiers: modifiers,
+      armyPowerFormula: armyPower,
     );
   }
 
@@ -300,6 +303,26 @@ class FactionParser {
       }
     }
     return modifiers;
+  }
+
+  ArmyPowerFormula _readArmyPower(Map<String, dynamic> json) {
+    if (!json.containsKey('armyPower')) {
+      return ArmyPowerFormula.perUnit;
+    }
+    final value = json['armyPower'];
+    switch (value) {
+      case 'perUnit':
+        return ArmyPowerFormula.perUnit;
+      case 'nSquared':
+        return ArmyPowerFormula.nSquared;
+      default:
+        throw FactionInvalidValueException(
+          field: 'armyPower',
+          path: 'фракция',
+          reason: 'должно быть "perUnit" или "nSquared"',
+          value: value,
+        );
+    }
   }
 
   int _readNonNegativeInt(
