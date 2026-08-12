@@ -110,7 +110,8 @@ void main() {
 
       final chained = mayaMods.fold<int>(
         7,
-        (power, modifier) => modifier.withEnabled(true).applyTo(power),
+        (power, modifier) =>
+            (modifier as ToggleModifier).withEnabled(true).applyTo(power),
       );
       expect(chained, 14);
     });
