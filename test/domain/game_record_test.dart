@@ -169,7 +169,7 @@ void main() {
       expect(records[1].dateTime, DateTime(2026, 7, 1));
     });
 
-    test('битые записи пропускаются, валидные сохраняются', () {
+    test('битые записи пропускаются, валидные и v1-терпимые сохраняются', () {
       final valid = _codec.encode(_record());
       final broken = [
         'не json',
@@ -178,17 +178,71 @@ void main() {
         '{"dateTime": "2026-08-12T18:30:00.000"}',
         '{"playerScores": []}',
         '{"dateTime": "не-дата", "playerScores": [{"playerName": "Иван", "score": 5, "faction": "Майя"}]}',
-        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "", "score": 5, "faction": "Майя"}]}',
         '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "Иван", "score": "пять", "faction": "Майя"}]}',
-        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "Иван", "score": 5}]}',
         '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "Иван", "score": 5, "faction": "Майя"}, {"playerName": "Пётр", "score": 5, "faction": "Наги"}, {"playerName": "Аня", "score": 5, "faction": "Гномы"}, {"playerName": "Боря", "score": 5, "faction": "Эльфы"}, {"playerName": "Витя", "score": 5, "faction": "Орки"}]}',
         '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": 42}',
       ];
+      // Записи, которые читала v1 (пустое имя, отсутствующая фракция),
+      // сохраняются со значениями по умолчанию.
+      final v1Tolerant = [
+        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "", "score": 5, "faction": "Майя"}]}',
+        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "Иван", "score": 5}]}',
+      ];
 
-      final records = _codec.decodeAll([valid, ...broken]);
+      final records = _codec.decodeAll([valid, ...broken, ...v1Tolerant]);
 
-      expect(records, hasLength(1));
-      expect(records.single.toJson(), _codec.decode(valid).toJson());
+      expect(records, hasLength(3));
+      expect(records[0].toJson(), _codec.decode(valid).toJson());
+      expect(records[1].playerScores.single.playerName, '');
+      expect(records[2].playerScores.single.faction, '');
+    });
+
+    test('отсутствующие поля игрока подставляются как в v1', () {
+      const sources = [
+        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "Иван", "score": 5}]}',
+        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"score": 7, "faction": "Гномы"}]}',
+        '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": [{"playerName": "Пётр"}]}',
+      ];
+
+      final records = _codec.decodeAll(sources);
+
+      expect(records, hasLength(3));
+      expect(records[0].playerScores.single.faction, '');
+      expect(records[1].playerScores.single.playerName, '');
+      expect(records[1].playerScores.single.score, 7);
+      expect(records[2].playerScores.single.score, 0);
+      expect(records[2].playerScores.single.faction, '');
+    });
+
+    test('нулевые значения полей подставляются как в v1', () {
+      const source =
+          '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": '
+          '[{"playerName": null, "score": null, "faction": null}]}';
+
+      final record = _codec.decodeAll([source]).single;
+
+      expect(record.playerScores.single.playerName, '');
+      expect(record.playerScores.single.score, 0);
+      expect(record.playerScores.single.faction, '');
+    });
+
+    test('строгий decode по-прежнему требует все поля', () {
+      const v1TolerantOnly =
+          '{"dateTime": "2026-08-12T18:30:00.000", "playerScores": '
+          '[{"playerName": "Иван", "score": 5}]}';
+
+      expect(
+        () => _codec.decode(v1TolerantOnly),
+        throwsA(isA<GameRecordParseException>()),
+      );
+      expect(
+        _codec.decodeAll([v1TolerantOnly])
+            .single
+            .playerScores
+            .single
+            .faction,
+        '',
+      );
     });
 
     test('пустые данные → пустой список, без ошибок', () {

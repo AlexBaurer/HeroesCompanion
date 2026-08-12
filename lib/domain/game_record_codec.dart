@@ -32,12 +32,13 @@ final class GameRecordInvalidValueException extends GameRecordParseException {
 
 /// Кодек записей игр в формате v1 (ADR-0002): строгий разбор одиночных
 /// записей и пакетное преобразование списка строк из `shared_preferences`
-/// (`score_records`) с пропуском битых записей.
+/// (`score_records`) с толерантностью v1.
 ///
 /// Разбор намеренно шире сериализации: неизвестные поля игнорируются,
 /// дата принимается в любом формате, который понимает `DateTime.parse`.
-/// Так битые или «чужеродные» записи сохраняются (пропуск при миграции
-/// теряет данные), а запись всегда выдаётся в каноничном формате v1.
+/// Миграция ([decodeAll]) читает записи так же, как это делала v1:
+/// отсутствующие поля игроков подставляются значениями по умолчанию,
+/// пропускаются только записи, нечитаемые даже v1.
 class GameRecordCodec {
   const GameRecordCodec();
 
@@ -73,19 +74,120 @@ class GameRecordCodec {
   }
 
   /// Преобразование v1 → v2: разбирает список JSON-строк формата v1
-  /// (ключ `score_records`) в записи, пропуская битые. Чистое
-  /// преобразование: повторный прогон по уже преобразованным данным
-  /// не дублирует записи.
+  /// (ключ `score_records`) в записи. Пропускаются только записи,
+  /// нечитаемые даже v1; отсутствующие поля игроков подставляются
+  /// значениями по умолчанию (как читала их v1), а не отбрасываются.
+  /// Чистое преобразование: повторный прогон по уже преобразованным
+  /// данным не дублирует записи.
   List<GameRecord> decodeAll(List<String> sources) {
     final records = <GameRecord>[];
     for (final source in sources) {
       try {
-        records.add(decode(source));
+        records.add(decodeTolerant(source));
       } on GameRecordParseException {
-        // Битая запись пропускается.
+        // Запись нечитаема даже v1 — пропускается.
       }
     }
     return records;
+  }
+
+  /// Разбирает запись так, как читала её v1: отсутствующие или нулевые
+  /// значения полей игрока заменяются значениями по умолчанию
+  /// (пустая строка, 0), а не считаются ошибкой. Бросает
+  /// [GameRecordParseException], только если запись нечитаема даже v1.
+  GameRecord decodeTolerant(String source) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(source);
+    } on FormatException catch (e) {
+      throw GameRecordSyntaxException('некорректный JSON: ${e.message}');
+    }
+    if (decoded is! Map<String, dynamic>) {
+      throw const GameRecordSyntaxException('запись должна быть JSON-объектом');
+    }
+    return decodeMapTolerant(decoded);
+  }
+
+  /// Разбирает запись из JSON-объекта в режиме v1.
+  GameRecord decodeMapTolerant(Map<String, dynamic> json) {
+    final dateTime = _readDateTime(json);
+    final raw = json['playerScores'];
+    if (raw == null) {
+      // v1: `as List? ?? []` — запись без игроков; представить её
+      // в v2 нельзя (запись должна содержать 1–4 игроков) — пропуск.
+      throw const GameRecordInvalidValueException(
+        field: 'playerScores',
+        path: 'запись',
+        reason: 'должно быть от 1 до 4 игроков',
+      );
+    }
+    if (raw is! List) {
+      throw GameRecordInvalidValueException(
+        field: 'playerScores',
+        path: 'запись',
+        reason: 'должно быть списком результатов игроков',
+        value: raw,
+      );
+    }
+    if (raw.isEmpty || raw.length > GameRecord.maxPlayers) {
+      throw GameRecordInvalidValueException(
+        field: 'playerScores',
+        path: 'запись',
+        reason:
+            'должно быть от ${GameRecord.minPlayers} до '
+            '${GameRecord.maxPlayers} игроков',
+        value: raw,
+      );
+    }
+    final players = [
+      for (var i = 0; i < raw.length; i++)
+        _readPlayerScoreTolerant(raw[i], 'запись.playerScores[$i]'),
+    ];
+    return GameRecord(dateTime: dateTime, playerScores: players);
+  }
+
+  PlayerScore _readPlayerScoreTolerant(Object? raw, String path) {
+    if (raw is! Map<String, dynamic>) {
+      throw GameRecordInvalidValueException(
+        field: 'playerScores',
+        path: path,
+        reason: 'элемент должен быть объектом с результатами игрока',
+        value: raw,
+      );
+    }
+    return PlayerScore(
+      playerName: _readStringOrEmpty(raw, 'playerName', path),
+      score: _readIntOrZero(raw, 'score', path),
+      faction: _readStringOrEmpty(raw, 'faction', path),
+    );
+  }
+
+  String _readStringOrEmpty(
+    Map<String, dynamic> json,
+    String field,
+    String path,
+  ) {
+    final value = json[field];
+    if (value == null) return '';
+    if (value is String) return value;
+    throw GameRecordInvalidValueException(
+      field: field,
+      path: path,
+      reason: 'должно быть строкой',
+      value: value,
+    );
+  }
+
+  int _readIntOrZero(Map<String, dynamic> json, String field, String path) {
+    final value = json[field];
+    if (value == null) return 0;
+    if (value is int) return value;
+    throw GameRecordInvalidValueException(
+      field: field,
+      path: path,
+      reason: 'должно быть целым числом',
+      value: value,
+    );
   }
 
   DateTime _readDateTime(Map<String, dynamic> json) {
