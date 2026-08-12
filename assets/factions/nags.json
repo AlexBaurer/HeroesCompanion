@@ -1,0 +1,11 @@
+{
+  "name": "Наги",
+  "gamePart": 1,
+  "color": "#00C6D4",
+  "background": "assets/faction_background/nags_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "kraki", "name": "Краки", "power": 1}
+  ],
+  "armyPower": "nSquared"
+}

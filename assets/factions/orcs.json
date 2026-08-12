@@ -1,0 +1,15 @@
+{
+  "name": "Орки",
+  "gamePart": 1,
+  "color": "#DBAD13",
+  "background": "assets/faction_background/orcs_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото", "Ярость"],
+  "units": [
+    {"id": "explorer", "name": "Разведчик", "power": 2},
+    {"id": "grom", "name": "Громила", "power": 5},
+    {"id": "vzryvatel", "name": "Взрыватель", "power": 9}
+  ],
+  "modifiers": [
+    {"unit": "explorer", "type": "toggle", "bonusPower": 4}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Циклопы",
+  "gamePart": 3,
+  "color": "#00897B",
+  "background": "assets/faction_background/cyclops_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото", "Подковы"],
+  "units": [
+    {"id": "okhotnik", "name": "Охотник", "power": 7},
+    {"id": "pastyr", "name": "Пастырь", "power": 4},
+    {"id": "sablezub", "name": "Саблезуб", "power": 1}
+  ],
+  "modifiers": [
+    {"unit": "pastyr", "type": "toggle", "bonusPower": 6}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Культисты",
+  "gamePart": 2,
+  "color": "#583F2B",
+  "background": "assets/faction_background/cultists_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "propovednik", "name": "Проповедник", "power": 3},
+    {"id": "palomnik", "name": "Паломник", "power": 0}
+  ],
+  "modifiers": [
+    {"unit": "propovednik", "type": "toggle", "bonusPower": 4},
+    {"unit": "propovednik", "type": "toggle", "bonusPower": 5},
+    {"unit": "palomnik", "type": "toggle", "bonusPower": 4},
+    {"unit": "palomnik", "type": "toggle", "bonusPower": 6},
+    {"unit": "palomnik", "type": "toggle", "bonusPower": 8},
+    {"unit": "palomnik", "type": "toggle", "bonusPower": 10}
+  ]
+}

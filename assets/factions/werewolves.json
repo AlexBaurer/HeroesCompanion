@@ -1,0 +1,16 @@
+{
+  "name": "Оборотни",
+  "gamePart": 3,
+  "color": "#37474F",
+  "background": "assets/faction_background/werewolves_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото", "Мясо"],
+  "units": [
+    {"id": "odichaly", "name": "Одичалый", "power": 2},
+    {"id": "volhv", "name": "Волхв", "power": 4},
+    {"id": "yarl", "name": "Ярл", "power": 6}
+  ],
+  "modifiers": [
+    {"unit": "odichaly", "type": "toggle", "bonusPower": 3},
+    {"unit": "volhv", "type": "toggle", "bonusPower": 6}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "assets/faction_background/elfs_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1},
+    {"id": "grifon", "name": "Грифон", "power": 3},
+    {"id": "ent", "name": "Энт", "power": 6}
+  ]
+}

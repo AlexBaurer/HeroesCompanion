@@ -1,0 +1,18 @@
+{
+  "name": "Гномы",
+  "gamePart": 1,
+  "color": "#646464",
+  "background": "assets/faction_background/gnomes_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "mechanic", "name": "Механик", "power": 0},
+    {"id": "skarlat", "name": "Стреколёт", "power": 2},
+    {"id": "automaton", "name": "Автоматон", "power": 4},
+    {"id": "mechazavr", "name": "Мехозавр", "power": 5}
+  ],
+  "modifiers": [
+    {"unit": "skarlat", "type": "toggle", "bonusPower": 3},
+    {"unit": "automaton", "type": "toggle", "bonusPower": 5},
+    {"unit": "mechazavr", "type": "counter"}
+  ]
+}

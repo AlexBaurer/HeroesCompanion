@@ -1,0 +1,17 @@
+{
+  "name": "Механизмы",
+  "gamePart": 2,
+  "color": "#91B64D",
+  "background": "assets/faction_background/mechanisms_low.PNG",
+  "resources": ["Дерево", "Золото"],
+  "units": [
+    {"id": "yadro", "name": "Ядро", "power": 1},
+    {"id": "krushitel", "name": "Крушитель", "power": 4},
+    {"id": "koloss", "name": "Колосс", "power": 7}
+  ],
+  "modifiers": [
+    {"unit": "yadro", "type": "toggle", "bonusPower": 2},
+    {"unit": "krushitel", "type": "counter"},
+    {"unit": "koloss", "type": "counter"}
+  ]
+}

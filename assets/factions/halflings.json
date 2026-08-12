@@ -1,0 +1,16 @@
+{
+  "name": "Полурослики",
+  "gamePart": 2,
+  "color": "#DD7906",
+  "background": "assets/faction_background/halflings_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "gladiator", "name": "Гладиатор", "power": 3},
+    {"id": "legioner", "name": "Легионер", "power": 6}
+  ],
+  "modifiers": [
+    {"unit": "gladiator", "type": "toggle", "bonusPower": 4},
+    {"unit": "legioner", "type": "toggle", "bonusPower": 8},
+    {"unit": "legioner", "type": "toggle", "bonusPower": 10}
+  ]
+}

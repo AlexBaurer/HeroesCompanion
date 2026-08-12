@@ -1,0 +1,23 @@
+{
+  "name": "Гриболюды",
+  "gamePart": 3,
+  "color": "#6D4C41",
+  "background": "assets/faction_background/mushroomers_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото", "Грибной ресурс"],
+  "units": [
+    {"id": "shlyapnik", "name": "Шляпник", "power": 0},
+    {"id": "gribovoy", "name": "Грибовой", "power": 0},
+    {"id": "lisider", "name": "Лисидер", "power": 0},
+    {"id": "mitcemant", "name": "Мицемант", "power": 0},
+    {"id": "tlenitel", "name": "Тленитель", "power": 10},
+    {"id": "gruzdar", "name": "Груздарь", "power": 0},
+    {"id": "infektor", "name": "Инфектор", "power": 0},
+    {"id": "sporonosets", "name": "Спороносец", "power": 0},
+    {"id": "arhytoks", "name": "Архитокс", "power": 10}
+  ],
+  "modifiers": [
+    {"unit": "shlyapnik", "type": "toggle", "bonusPower": 4},
+    {"unit": "gribovoy", "type": "toggle", "bonusPower": 4},
+    {"unit": "lisider", "type": "toggle", "bonusPower": 4}
+  ]
+}

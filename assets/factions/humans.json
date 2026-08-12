@@ -1,0 +1,17 @@
+{
+  "name": "Люди",
+  "gamePart": 1,
+  "color": "#BE5737",
+  "background": "assets/faction_background/humans_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "soldier", "name": "Солдат", "power": 2},
+    {"id": "latnik", "name": "Латник", "power": 3},
+    {"id": "archimage", "name": "Архимаг", "power": 5}
+  ],
+  "modifiers": [
+    {"unit": "soldier", "type": "toggle", "bonusPower": 3},
+    {"unit": "latnik", "type": "toggle", "bonusPower": 4},
+    {"unit": "archimage", "type": "toggle", "bonusPower": 7}
+  ]
+}

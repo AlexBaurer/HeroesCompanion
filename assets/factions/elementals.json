@@ -1,0 +1,20 @@
+{
+  "name": "Элементали",
+  "gamePart": 2,
+  "color": "#F44336",
+  "background": "assets/faction_background/elementals_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "zefira", "name": "Зефира", "power": 2},
+    {"id": "tur", "name": "Тур", "power": 1},
+    {"id": "dzazir", "name": "Джазир", "power": 0},
+    {"id": "maya", "name": "Майя", "power": 7}
+  ],
+  "modifiers": [
+    {"unit": "zefira", "type": "toggle", "bonusPower": 3},
+    {"unit": "tur", "type": "toggle", "bonusPower": 2},
+    {"unit": "maya", "type": "toggle", "bonusPower": 10},
+    {"unit": "maya", "type": "toggle", "bonusPower": 14},
+    {"unit": "dzazir", "type": "counter", "step": 3}
+  ]
+}

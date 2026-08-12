@@ -1,0 +1,15 @@
+{
+  "name": "Гремлины",
+  "gamePart": 2,
+  "color": "#C75393",
+  "background": "assets/faction_background/gremlins_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "vyshivabla", "name": "Вышибала", "power": 1},
+    {"id": "nalivala", "name": "Наливала", "power": 4},
+    {"id": "letala", "name": "Летала", "power": 9}
+  ],
+  "modifiers": [
+    {"unit": "vyshivabla", "type": "toggle", "bonusPower": 3}
+  ]
+}

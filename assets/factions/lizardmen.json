@@ -1,0 +1,14 @@
+{
+  "name": "Ящеры",
+  "gamePart": 3,
+  "color": "#7CB342",
+  "background": "assets/faction_background/lizardmen_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото", "Души"],
+  "units": [
+    {"id": "shaman", "name": "Шаман", "power": 4}
+  ],
+  "modifiers": [
+    {"unit": "shaman", "type": "toggle", "bonusPower": 5},
+    {"unit": "shaman", "type": "toggle", "bonusPower": 6}
+  ]
+}

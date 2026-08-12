@@ -1,0 +1,11 @@
+{
+  "name": "Архонты",
+  "gamePart": 3,
+  "color": "#3949AB",
+  "background": "assets/faction_background/archons_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "obvinitel", "name": "Обвинитель", "power": 1},
+    {"id": "vershitel", "name": "Вершитель", "power": 14}
+  ]
+}

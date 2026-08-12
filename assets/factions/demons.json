@@ -1,0 +1,16 @@
+{
+  "name": "Демоны",
+  "gamePart": 2,
+  "color": "#4C2F7C",
+  "background": "assets/faction_background/demons_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "bes", "name": "Бес", "power": 1},
+    {"id": "sukkub", "name": "Суккуб", "power": 4},
+    {"id": "myasnik", "name": "Мясник", "power": 7}
+  ],
+  "modifiers": [
+    {"unit": "sukkub", "type": "toggle", "bonusPower": 5},
+    {"unit": "myasnik", "type": "toggle", "bonusPower": 11}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Тёмные эльфы",
+  "gamePart": 3,
+  "color": "#6A1B9A",
+  "background": "assets/faction_background/darkelfs_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото", "Коконы"],
+  "units": [
+    {"id": "assassin", "name": "Ассасин", "power": 0},
+    {"id": "kokon", "name": "Кокон", "power": 0},
+    {"id": "arahnid", "name": "Арахнид", "power": 5}
+  ],
+  "modifiers": [
+    {"unit": "arahnid", "type": "toggle", "bonusPower": 7}
+  ]
+}

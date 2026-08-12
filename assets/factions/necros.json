@@ -1,0 +1,16 @@
+{
+  "name": "Нежить",
+  "gamePart": 1,
+  "color": "#088AAA",
+  "background": "assets/faction_background/necros_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "skeleton", "name": "Скелет", "power": 1},
+    {"id": "palach", "name": "Палач", "power": 0},
+    {"id": "lich", "name": "Лич", "power": 5}
+  ],
+  "modifiers": [
+    {"unit": "skeleton", "type": "toggle", "bonusPower": 2},
+    {"unit": "palach", "type": "counter"}
+  ]
+}
