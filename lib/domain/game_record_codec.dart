@@ -115,7 +115,7 @@ class GameRecordCodec {
     if (raw == null) {
       // v1: `as List? ?? []` — запись без игроков; представить её
       // в v2 нельзя (запись должна содержать 1–4 игроков) — пропуск.
-      throw const GameRecordInvalidValueException(
+      throw GameRecordInvalidValueException(
         field: 'playerScores',
         path: 'запись',
         reason: 'должно быть от 1 до 4 игроков',
