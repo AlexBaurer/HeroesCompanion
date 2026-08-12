@@ -81,7 +81,9 @@ class GameRecordCodec {
     for (final source in sources) {
       try {
         records.add(decode(source));
-      } on GameRecordParseException {}
+      } on GameRecordParseException {
+        // Битая запись пропускается.
+      }
     }
     return records;
   }
