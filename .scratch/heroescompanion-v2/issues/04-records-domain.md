@@ -6,8 +6,12 @@
 
 **Status:** ready-for-agent
 
-- [ ] Round-trip: запись → JSON → запись идентична
-- [ ] JSON-формат совпадает с v1 (dateTime ISO-8601, playerScores: playerName/score/faction)
-- [ ] Преобразование v1→v2 для валидных, частично битых и пустых данных
-- [ ] Повторное преобразование не дублирует записи
-- [ ] Юнит-тесты: round-trip, битые данные, идемпотентность
+- [x] Round-trip: запись → JSON → запись идентична
+- [x] JSON-формат совпадает с v1 (dateTime ISO-8601, playerScores: playerName/score/faction)
+- [x] Преобразование v1→v2 для валидных, частично битых и пустых данных
+- [x] Повторное преобразование не дублирует записи
+- [x] Юнит-тесты: round-trip, битые данные, идемпотентность
+
+## Comments
+
+Реализовано в `lib/domain/game_record.dart` (GameRecord, PlayerScore — запись содержит 1–4 игроков, конструктор бросает ArgumentError) и `lib/domain/game_record_codec.dart` (GameRecordCodec: `encode`/`decode`/`decodeAll`/`encodeAll` + исключения GameRecordParseException). Формат совпадает с писателем v1 (ADR-0002): ключи, порядок полей и ISO-8601 дата байт-в-байт (тест на точную строку); разбор намеренно шире сериализации (неизвестные поля игнорируются, дата — любой формат `DateTime.parse`) ради сохранения данных при миграции. `decodeAll` — чистое преобразование списка строк `score_records` с пропуском битых записей, идемпотентно; флаг «миграция выполнена» — тикет 10. Имена классов: в тикете указаны ScoreRecord/PlayerScore (как в v1), но по глоссарию CONTEXT.md (`_Avoid_: score record (в коде)`) запись называется GameRecord; PlayerScore оставлен — он соответствует JSON-полю `playerScores` и не является «score record». Тесты: `test/domain/game_record_test.dart` (17 тестов: round-trip, точный формат v1, битые/пустые данные, идемпотентность, предел в 4 игрока, строка от писателя v1). На этой машине нет Flutter SDK — код и тесты проверены прогоном в изолированном чистом Dart-пакете (анализ чист, 17/17 тестов проходят), требуют финального прогона `flutter test` на машине со SDK.
