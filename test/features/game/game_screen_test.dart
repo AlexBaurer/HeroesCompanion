@@ -159,7 +159,8 @@ void main() {
     await tester.tap(find.text('Закончить игру'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Заглушка: ввод очков (Тестовая)'), findsOneWidget);
+    expect(find.text('Ввод очков'), findsOneWidget);
+    expect(find.text('Фракция: Тестовая'), findsOneWidget);
   });
 
   testWidgets('модалка модификаторов читает сессию и не теряет состояние', (
