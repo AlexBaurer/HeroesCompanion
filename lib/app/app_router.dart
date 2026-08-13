@@ -9,10 +9,7 @@ import '../features/scores/presentation/score_history_screen.dart';
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const MainMenuScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const MainMenuScreen()),
     GoRoute(
       path: '/faction_choose',
       builder: (context, state) => const FactionChooseScreen(),
@@ -25,7 +22,8 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/score',
-      builder: (context, state) => const ScoreEntryScreen(),
+      builder: (context, state) =>
+          ScoreEntryScreen(factionName: state.uri.queryParameters['faction']),
     ),
     GoRoute(
       path: '/score_history',
