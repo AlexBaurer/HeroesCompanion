@@ -18,6 +18,7 @@ class FactionChooseScreen extends ConsumerWidget {
       body: catalog.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _LoadError(
+          error: error,
           onRetry: () => ref.invalidate(factionCatalogProvider),
         ),
         data: (data) => _FactionSections(catalog: data),
@@ -27,22 +28,35 @@ class FactionChooseScreen extends ConsumerWidget {
 }
 
 class _LoadError extends StatelessWidget {
-  const _LoadError({required this.onRetry});
+  const _LoadError({required this.error, required this.onRetry});
 
+  final Object error;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline, size: 48),
-          const SizedBox(height: 12),
-          const Text('Не удалось загрузить фракции'),
-          const SizedBox(height: 12),
-          FilledButton(onPressed: onRetry, child: const Text('Повторить')),
-        ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 12),
+            const Text('Не удалось загрузить фракции'),
+            const SizedBox(height: 8),
+            Text(
+              '$error',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+          ],
+        ),
       ),
     );
   }
