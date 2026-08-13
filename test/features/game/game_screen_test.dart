@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -71,6 +72,21 @@ Future<ProviderContainer> _openGameScreen(WidgetTester tester) async {
   await tester.tap(find.text('Тестовая'));
   await tester.pumpAndSettle();
   return container;
+}
+
+/// Симулирует системное «назад» (как в тестах Flutter framework):
+/// платформенное сообщение popRoute по каналу навигации — полный путь
+/// через RootBackButtonDispatcher (go_router) → RouterDelegate.popRoute →
+/// maybePop → PopScope.
+Future<void> _simulateSystemBack() {
+  return TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .handlePlatformMessage(
+        SystemChannels.navigation.name,
+        const JSONMessageCodec().encodeMessage(<String, dynamic>{
+          'method': 'popRoute',
+        }),
+        (ByteData? _) {},
+      );
 }
 
 void main() {
@@ -174,14 +190,13 @@ void main() {
   testWidgets('выход — только двойным «назад»', (tester) async {
     await _openGameScreen(tester);
 
-    final widgetsAppState = tester.state(find.byType(WidgetsApp));
-    await widgetsAppState.didPopRoute();
+    await _simulateSystemBack();
     await tester.pump();
 
     expect(find.text('Нажмите «назад» ещё раз, чтобы выйти'), findsOneWidget);
     expect(find.text('Текущий раунд: 1'), findsOneWidget);
 
-    await widgetsAppState.didPopRoute();
+    await _simulateSystemBack();
     await tester.pumpAndSettle();
 
     expect(find.text('Выбери фракцию'), findsOneWidget);
