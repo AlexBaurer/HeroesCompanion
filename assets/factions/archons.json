@@ -10,7 +10,7 @@
     {"id": "vershitel", "name": "Вершитель", "power": 14}
   ],
   "modifiers": [
-    {"unit": "zaschitnik", "type": "counter", "bonusPower": 1},
+    {"unit": "zaschitnik", "type": "counter", "step": 1},
     {"unit": "vershitel", "type": "counter", "step": -2}
   ]
 }

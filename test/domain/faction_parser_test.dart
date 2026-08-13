@@ -154,6 +154,34 @@ void main() {
     });
   });
 
+  group('counter с отрицательным шагом (счётчик урона)', () {
+    test('Архонты: Вершитель со step -2 разбирается и уменьшает силу', () {
+      const json = '''
+{
+  "name": "Архонты",
+  "gamePart": 3,
+  "color": "#3949AB",
+  "background": "assets/faction_background/archons_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "obvinitel", "name": "Обвинитель", "power": 1},
+    {"id": "vershitel", "name": "Вершитель", "power": 14}
+  ],
+  "modifiers": [
+    {"unit": "vershitel", "type": "counter", "step": -2}
+  ]
+}
+''';
+
+      final faction = parse(json);
+
+      final mod = faction.modifiersFor('vershitel').single as CounterModifier;
+      expect(mod.step, -2);
+      expect(mod.withCount(0).applyTo(14), 14);
+      expect(mod.withCount(2).applyTo(14), 10);
+    });
+  });
+
   group('armyPower: признак особого расчёта силы', () {
     test('без поля — стандартный расчёт perUnit', () {
       final faction = parse(_humansJson);

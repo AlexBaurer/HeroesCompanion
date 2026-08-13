@@ -289,8 +289,7 @@ class FactionParser {
         case 'counter':
           modifiers.add(CounterModifier(
             unitId: unitId,
-            step: _readOptionalNonNegativeInt(rawModifier, 'step', path,
-                fallback: 1),
+            step: _readOptionalInt(rawModifier, 'step', path, fallback: 1),
             maxCount: _readOptionalNonNegativeInt(
               rawModifier,
               'maxCount',
@@ -325,14 +324,41 @@ class FactionParser {
     }
   }
 
+  /// Шаг счётчика — произвольное целое: положительный усиливает силу
+  /// (счётчик улучшений), отрицательный уменьшает (счётчик урона).
+  int _readOptionalInt(
+    Map<String, dynamic> json,
+    String field,
+    String path, {
+    required int fallback,
+  }) {
+    if (!json.containsKey(field)) {
+      return fallback;
+    }
+    return _readInt(json, field, path);
+  }
+
+  int _readInt(Map<String, dynamic> json, String field, String path) {
+    _requireField(json, field, path);
+    final value = json[field];
+    if (value is! int) {
+      throw FactionInvalidValueException(
+        field: field,
+        path: path,
+        reason: 'должно быть целым числом',
+        value: value,
+      );
+    }
+    return value;
+  }
+
   int _readNonNegativeInt(
     Map<String, dynamic> json,
     String field,
     String path,
   ) {
-    _requireField(json, field, path);
-    final value = json[field];
-    if (value is! int || value < 0) {
+    final value = _readInt(json, field, path);
+    if (value < 0) {
       throw FactionInvalidValueException(
         field: field,
         path: path,
