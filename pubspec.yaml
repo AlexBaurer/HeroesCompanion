@@ -24,6 +24,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/factions/
     - assets/units/
     - assets/faction_background/
     - assets/score_screen/
