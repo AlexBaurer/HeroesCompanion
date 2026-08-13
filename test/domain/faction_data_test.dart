@@ -216,16 +216,24 @@ void main() {
         [('Одичалый', 2), ('Волхв', 4), ('Ярл', 4)],
       );
       expect(
-        (modsByUnit(faction, 'odichaly').single as ToggleModifier).bonusPower,
-        3,
+        modsByUnit(faction, 'odichaly').whereType<ToggleModifier>().map((m) => m.bonusPower),
+        [3],
+      );
+      expect(
+        modsByUnit(faction, 'odichaly').whereType<CounterModifier>().map((m) => m.step),
+        [2],
       );
       expect(
         (modsByUnit(faction, 'volhv').single as ToggleModifier).bonusPower,
         6,
       );
       expect(
-        (modsByUnit(faction, 'yarl').single as ToggleModifier).bonusPower,
-        8,
+        modsByUnit(faction, 'yarl').whereType<ToggleModifier>().map((m) => m.bonusPower),
+        [8],
+      );
+      expect(
+        modsByUnit(faction, 'yarl').whereType<CounterModifier>().map((m) => m.step),
+        [1],
       );
     });
 

@@ -54,6 +54,12 @@ void main() {
   });
 
   testWidgets('главное меню → выбор фракции → экран партии', (tester) async {
+    // Высокий вьюпорт: секции 1–3 и все 18 кнопок строятся сразу
+    // (ListView ленивый, за пределами экрана виджеты не существуют).
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       _app(overrides: [
         factionRepositoryProvider.overrideWithValue(_fakeRepository()),
