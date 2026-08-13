@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:heroescompanion/app/app_router.dart';
 import 'package:heroescompanion/domain/strength_modifier.dart';
 import 'package:heroescompanion/features/factions/data/faction_providers.dart';
 import 'package:heroescompanion/features/factions/data/faction_repository.dart';
@@ -61,6 +62,9 @@ Future<ProviderContainer> _openGameScreen(WidgetTester tester) async {
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
+  // appRouter глобальный: состояние навигации переживает тесты, поэтому
+  // сбрасываем его на главное меню перед новым деревом.
+  appRouter.go('/');
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
