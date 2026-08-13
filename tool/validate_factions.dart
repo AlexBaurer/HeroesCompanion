@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../lib/domain/faction_parser.dart';
+import 'package:heroescompanion/domain/faction_parser.dart';
 
 /// Прогоняет FactionParser по всем JSON-файлам фракций (тикет 05).
 ///

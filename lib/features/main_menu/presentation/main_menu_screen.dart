@@ -69,7 +69,7 @@ class MainMenuScreen extends StatelessWidget {
                 child: const Icon(Icons.volunteer_activism),
               ),
             ),
-            Positioned(
+            const Positioned(
               right: 16,
               bottom: 16,
               child: _AppVersionText(),

@@ -208,12 +208,12 @@ void main() {
   });
 
   group('коробка 3 (чтение rules3.pdf)', () {
-    test('Оборотни: Одичалый 2, Волхв 4, Ярл 6; волчья ночь — переключатели', () {
+    test('Оборотни: Одичалый 2, Волхв 4, Ярл 4; волчья ночь — переключатели', () {
       final faction = load('werewolves.json');
       expect(faction.resources, contains('Мясо'));
       expect(
         faction.units.map((u) => (u.name, u.basePower)).toList(),
-        [('Одичалый', 2), ('Волхв', 4), ('Ярл', 6)],
+        [('Одичалый', 2), ('Волхв', 4), ('Ярл', 4)],
       );
       expect(
         (modsByUnit(faction, 'odichaly').single as ToggleModifier).bonusPower,
@@ -223,15 +223,25 @@ void main() {
         (modsByUnit(faction, 'volhv').single as ToggleModifier).bonusPower,
         6,
       );
+      expect(
+        (modsByUnit(faction, 'yarl').single as ToggleModifier).bonusPower,
+        8,
+      );
     });
 
-    test('Архонты: Обвинитель 1, Вершитель 14, без модификаторов', () {
+    test('Архонты: Обвинитель 1, Защитник 2, Вершитель 14; счётчики силы', () {
       final faction = load('archons.json');
       expect(
         faction.units.map((u) => (u.name, u.basePower)).toList(),
-        [('Обвинитель', 1), ('Вершитель', 14)],
+        [('Обвинитель', 1), ('Защитник', 2), ('Вершитель', 14)],
       );
-      expect(faction.modifiers, isEmpty);
+      expect(faction.modifiers, hasLength(2));
+      final zashitnik = faction.modifiers[0] as CounterModifier;
+      expect(zashitnik.unitId, 'zaschitnik');
+      expect(zashitnik.step, 1);
+      final vershitel = faction.modifiers[1] as CounterModifier;
+      expect(vershitel.unitId, 'vershitel');
+      expect(vershitel.step, -2);
     });
 
     test('Ящеры: Шаман 4 с двумя переключателями (5 и 6)', () {
@@ -246,11 +256,11 @@ void main() {
       );
     });
 
-    test('Тёмные эльфы: Арахнид 5 с переключателем до 7', () {
+    test('Тёмные эльфы: Ассасин 3, Кокон 1, Арахнид 5 с переключателем до 7', () {
       final faction = load('darkelfs.json');
       expect(
         faction.units.map((u) => (u.name, u.basePower)).toList(),
-        [('Ассасин', 0), ('Кокон', 0), ('Арахнид', 5)],
+        [('Ассасин', 3), ('Кокон', 1), ('Арахнид', 5)],
       );
       expect(
         (modsByUnit(faction, 'arahnid').single as ToggleModifier).bonusPower,
@@ -271,12 +281,13 @@ void main() {
       );
     });
 
-    test('Гриболюды: 9 зданий-воинов, Архитокс и Тленитель силой 10', () {
+    test('Гриболюды: 12 зданий-воинов, Архитокс и Тленитель силой 10', () {
       final faction = load('mushroomers.json');
       expect(faction.resources, contains('Грибной ресурс'));
-      expect(faction.units, hasLength(9));
+      expect(faction.units, hasLength(12));
       expect(faction.unitById('arhytoks')?.basePower, 10);
       expect(faction.unitById('tlenitel')?.basePower, 10);
+      expect(faction.unitById('muhostrel')?.basePower, 8);
       final boost = faction.modifiers
           .map((m) => (m as ToggleModifier).bonusPower)
           .toList();
