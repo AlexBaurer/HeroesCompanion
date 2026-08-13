@@ -7,10 +7,13 @@
   "units": [
     {"id": "odichaly", "name": "Одичалый", "power": 2},
     {"id": "volhv", "name": "Волхв", "power": 4},
-    {"id": "yarl", "name": "Ярл", "power": 6}
+    {"id": "yarl", "name": "Ярл", "power": 4}
   ],
   "modifiers": [
     {"unit": "odichaly", "type": "toggle", "bonusPower": 3},
-    {"unit": "volhv", "type": "toggle", "bonusPower": 6}
+    {"unit": "volhv", "type": "toggle", "bonusPower": 6},
+    {"unit": "yarl", "type": "toggle", "bonusPower": 8},
+    {"unit": "odichaly", "type": "counter", "step": 2},
+    {"unit": "yarl", "type": "counter", "step": 1}
   ]
 }

@@ -10,6 +10,8 @@
     {"id": "sablezub", "name": "Саблезуб", "power": 1}
   ],
   "modifiers": [
-    {"unit": "pastyr", "type": "toggle", "bonusPower": 6}
+    {"unit": "pastyr", "type": "toggle", "bonusPower": 6},
+    {"unit": "okhotnik", "type": "counter", "step": 1},
+    {"unit": "sablezub", "type": "counter", "step": 1}
   ]
 }

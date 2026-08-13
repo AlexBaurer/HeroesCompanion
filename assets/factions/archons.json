@@ -6,6 +6,11 @@
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "obvinitel", "name": "Обвинитель", "power": 1},
+    {"id": "zaschitnik", "name": "Защитник", "power": 2},
     {"id": "vershitel", "name": "Вершитель", "power": 14}
+  ],
+  "modifiers": [
+    {"unit": "zaschitnik", "type": "counter", "bonusPower": 1},
+    {"unit": "vershitel", "type": "counter", "step": -2}
   ]
 }

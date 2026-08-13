@@ -11,6 +11,6 @@
   ],
   "modifiers": [
     {"unit": "skeleton", "type": "toggle", "bonusPower": 2},
-    {"unit": "palach", "type": "counter"}
+    {"unit": "palach", "type": "counter", "step": 1}
   ]
 }

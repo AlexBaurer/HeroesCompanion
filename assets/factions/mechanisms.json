@@ -11,7 +11,7 @@
   ],
   "modifiers": [
     {"unit": "yadro", "type": "toggle", "bonusPower": 2},
-    {"unit": "krushitel", "type": "counter"},
-    {"unit": "koloss", "type": "counter"}
+    {"unit": "krushitel", "type": "counter", "step": 1},
+    {"unit": "koloss", "type": "counter", "step": 1}
   ]
 }
