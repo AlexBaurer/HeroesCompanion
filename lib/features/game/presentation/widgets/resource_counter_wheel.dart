@@ -44,6 +44,11 @@ class ResourceCounterWheel extends StatefulWidget {
 class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
   late final FixedExtentScrollController _controller;
 
+  /// Перескок колёсика в [didUpdateWidget] идёт в фазе сборки, а уведомление
+  /// о прокрутке синхронно вызовет [onValueChanged] — менять провайдер
+  /// в этой фазе нельзя, поэтому уведомления на время перескока гасятся.
+  bool _programmaticJump = false;
+
   int _indexFor(int value) => widget.maxValue - value;
 
   int _valueAt(int index) => widget.maxValue - index;
@@ -69,11 +74,14 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
     super.didUpdateWidget(oldWidget);
     final shown = _valueAt(_controller.selectedItem);
     if (widget.value != oldWidget.value && widget.value != shown) {
+      _programmaticJump = true;
       _controller.jumpToItem(_indexFor(widget.value));
+      _programmaticJump = false;
     }
   }
 
   void _onScroll() {
+    if (_programmaticJump) return;
     final value = _valueAt(_controller.selectedItem);
     if (value >= 0 && value <= widget.maxValue && value != widget.value) {
       widget.onValueChanged(value);
