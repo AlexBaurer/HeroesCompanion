@@ -75,8 +75,19 @@ Future<List<GameRecord>> _savedRecords(ProviderContainer container) async {
   return storage.loadAll();
 }
 
+/// Текст ячейки подсчёта по ключу ячейки (поле ввода внутри).
+String _cellText(WidgetTester tester, Key cellKey) {
+  final field = tester.widget<TextField>(
+    find.descendant(
+      of: find.byKey(cellKey),
+      matching: find.byType(TextField),
+    ),
+  );
+  return field.controller!.text;
+}
+
 void main() {
-  testWidgets('экран: игрок 1 с фракцией из партии, 4 игрока, 6 ячеек', (
+  testWidgets('экран: игрок 1 с фракцией из партии, 4 игрока, ячейки подсчёта', (
     tester,
   ) async {
     await _openScoreScreen(tester);
@@ -87,20 +98,43 @@ void main() {
       expect(find.text('Игрок $player'), findsOneWidget);
       expect(find.byKey(ValueKey('p$player-name')), findsOneWidget);
     }
-    for (final label in ['Здания', 'Фундаменты', 'Ресурсы', 'Сумма']) {
-      expect(find.text(label), findsNWidgets(4));
+    // 5 категорий и сумма — только у игрока 1 (в тестах без ассетов
+    // ячейки показывают подписи в fallback).
+    for (final label in [
+      'Здания',
+      'Фундаменты',
+      'Ресурсы',
+      'Победы в сражениях',
+      'Артефакты',
+      'Сумма',
+    ]) {
+      expect(find.text(label), findsOneWidget);
     }
-    expect(find.text('Победы в сражениях'), findsNWidgets(4));
-    expect(find.text('Артефакты'), findsNWidgets(4));
+    // У игроков 2–4 — одна ячейка «Итог» вместо категорий и автосуммы.
+    expect(find.text('Итог'), findsNWidgets(3));
     expect(find.text('Сохранить результаты'), findsOneWidget);
   });
 
-  testWidgets('автосумма считается из пяти ячеек и меняется при вводе', (
+  testWidgets('у игроков 2–4 одна ячейка «Итог», без категорий и суммы', (
     tester,
   ) async {
     await _openScoreScreen(tester);
 
-    expect(find.text('0'), findsNWidgets(4));
+    for (var player = 2; player <= 4; player++) {
+      expect(find.byKey(ValueKey('p$player-cell-0')), findsOneWidget);
+      for (var cell = 1; cell < 5; cell++) {
+        expect(find.byKey(ValueKey('p$player-cell-$cell')), findsNothing);
+      }
+      expect(find.byKey(ValueKey('p$player-sum')), findsNothing);
+    }
+  });
+
+  testWidgets('автосумма игрока 1 считается из пяти ячеек и меняется при вводе', (
+    tester,
+  ) async {
+    await _openScoreScreen(tester);
+
+    expect(find.text('0'), findsOneWidget);
 
     await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '2');
     await tester.enterText(find.byKey(const ValueKey('p1-cell-1')), '3');
@@ -110,6 +144,32 @@ void main() {
     await tester.pump();
 
     expect(find.text('15'), findsOneWidget);
+  });
+
+  testWidgets('в ячейки нельзя ввести буквы — фильтр отбрасывает ввод', (
+    tester,
+  ) async {
+    await _openScoreScreen(tester);
+
+    await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '12a');
+    await tester.pump();
+    expect(_cellText(tester, const ValueKey('p1-cell-0')), '');
+
+    await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), 'abc');
+    await tester.pump();
+    expect(_cellText(tester, const ValueKey('p2-cell-0')), '');
+  });
+
+  testWidgets('отрицательные очки вводятся, сумма становится отрицательной', (
+    tester,
+  ) async {
+    await _openScoreScreen(tester);
+
+    await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '-4');
+    await tester.enterText(find.byKey(const ValueKey('p1-cell-1')), '2');
+    await tester.pump();
+
+    expect(find.text('-2'), findsOneWidget);
   });
 
   testWidgets('сохранение одного игрока пишет запись v1 и ведёт к истории', (
@@ -152,6 +212,24 @@ void main() {
     expect(records.single.playerScores[1].score, 10);
     // Фракция игрока 2 — первая из каталога (как в v1 — Faction.all[0]).
     expect(records.single.playerScores[1].faction, 'Тестовая');
+  });
+
+  testWidgets('итог игрока 2 — из его единственной ячейки, в т.ч. отрицательный', (
+    tester,
+  ) async {
+    final container = await _openScoreScreen(tester);
+
+    await tester.enterText(find.byKey(const ValueKey('p1-name')), 'Иван');
+    await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '10');
+    await tester.enterText(find.byKey(const ValueKey('p2-name')), 'Пётр');
+    await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), '-3');
+    await tester.tap(find.text('Сохранить результаты'));
+    await tester.pumpAndSettle();
+
+    final records = await _savedRecords(container);
+    expect(records.single.playerScores, hasLength(2));
+    expect(records.single.playerScores[1].playerName, 'Пётр');
+    expect(records.single.playerScores[1].score, -3);
   });
 
   testWidgets('выбор фракции игрока 2 из каталога попадает в запись', (

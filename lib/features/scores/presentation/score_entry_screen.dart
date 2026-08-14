@@ -8,12 +8,14 @@ import 'package:heroescompanion/domain/game_record.dart';
 
 import '../../factions/data/faction_providers.dart';
 import '../data/game_record_providers.dart';
+import 'signed_int_input_formatter.dart';
 import 'widgets/load_error.dart';
 
-/// Экран результатов партии: игрок 1 с фракцией из партии, опциональные
-/// игроки 2–4 (имя + фракция), 6 ячеек подсчёта (здания, фундаменты,
-/// ресурсы, победы в сражениях, артефакты, сумма) с автоматической суммой.
-/// Сохраняет запись в формате v1 и переходит к истории.
+/// Экран результатов партии: игрок 1 (фракция из партии) вводит 5 ячеек
+/// подсчёта с автоматической суммой; игроки 2–4 — одну ячейку «Итог»
+/// с прямым вводом суммы (как в v1). Ячейки — картинки-карточки 100×100
+/// из `assets/score_screen/` (без ассета — подпись с полем). Сохраняет
+/// запись в формате v1 и переходит к истории.
 class ScoreEntryScreen extends ConsumerStatefulWidget {
   const ScoreEntryScreen({super.key, this.factionName});
 
@@ -24,7 +26,8 @@ class ScoreEntryScreen extends ConsumerStatefulWidget {
   ConsumerState<ScoreEntryScreen> createState() => _ScoreEntryScreenState();
 }
 
-/// Категории подсчёта: 5 вводимых ячеек, сумма считается автоматически.
+/// Категории подсчёта игрока 1: 5 вводимых ячеек, сумма считается
+/// автоматически.
 const _categoryLabels = [
   'Здания',
   'Фундаменты',
@@ -33,18 +36,34 @@ const _categoryLabels = [
   'Артефакты',
 ];
 
-/// Вводимые данные одного игрока: имя, 5 ячеек подсчёта и фракция
+/// Картинки ячеек подсчёта из v1 (каталог `assets/score_screen/`
+/// наполняет пользователь; без файла ячейка рисует подпись).
+const _categoryAssets = [
+  'assets/score_screen/buildings.PNG',
+  'assets/score_screen/fundaments.PNG',
+  'assets/score_screen/resources.PNG',
+  'assets/score_screen/fights.PNG',
+  'assets/score_screen/artifacts.PNG',
+];
+
+/// Картинка «Итог»: сумма игрока 1 и единственная ячейка игроков 2–4.
+const _generalAsset = 'assets/score_screen/general.PNG';
+
+/// Вводимые данные одного игрока: имя, ячейки подсчёта и фракция
 /// (для игроков 2–4; у игрока 1 она приходит из партии).
 class _PlayerEntry {
-  _PlayerEntry({required this.faction});
+  _PlayerEntry({required this.faction, required int cellCount})
+      : cells = [
+          for (var i = 0; i < cellCount; i++) TextEditingController(),
+        ];
 
   final TextEditingController name = TextEditingController();
-  final List<TextEditingController> cells = [
-    for (var i = 0; i < _categoryLabels.length; i++) TextEditingController(),
-  ];
+  final List<TextEditingController> cells;
   String faction;
 
-  /// Сумма из пяти ячеек (пустые считаются нулями).
+  /// Сумма ячеек игрока: у игрока 1 — автосумма пяти категорий;
+  /// у игроков 2–4 — значение их единственной ячейки «Итог»
+  /// (пустые считаются нулями).
   int get total {
     var sum = 0;
     for (final cell in cells) {
@@ -69,8 +88,13 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
   @override
   void initState() {
     super.initState();
-    _player1 = _PlayerEntry(faction: widget.factionName ?? '');
-    _others = [for (var i = 0; i < 3; i++) _PlayerEntry(faction: '')];
+    _player1 = _PlayerEntry(
+      faction: widget.factionName ?? '',
+      cellCount: _categoryLabels.length,
+    );
+    _others = [
+      for (var i = 0; i < 3; i++) _PlayerEntry(faction: '', cellCount: 1),
+    ];
   }
 
   @override
@@ -152,6 +176,7 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
           cellsKeys: [
             for (var i = 0; i < 5; i++) ValueKey('p1-cell-$i'),
           ],
+          assets: _categoryAssets,
           sumKey: const ValueKey('p1-sum'),
         ),
         const SizedBox(height: 12),
@@ -165,8 +190,8 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
             },
             entry: _others[i],
             nameKey: ValueKey('p${i + 2}-name'),
-            cellsKeys: [for (var j = 0; j < 5; j++) ValueKey('p${i + 2}-cell-$j')],
-            sumKey: ValueKey('p${i + 2}-sum'),
+            cellsKeys: [ValueKey('p${i + 2}-cell-0')],
+            assets: const [_generalAsset],
             factionKey: ValueKey('p${i + 2}-faction'),
           ),
           const SizedBox(height: 12),
@@ -187,7 +212,7 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
 }
 
 /// Карточка игрока: имя, фракция (выбор или подпись из партии)
-/// и 6 ячеек подсчёта (5 вводимых + автосумма).
+/// и ячейки подсчёта.
 class _PlayerSection extends StatelessWidget {
   const _PlayerSection({
     required this.title,
@@ -195,7 +220,8 @@ class _PlayerSection extends StatelessWidget {
     required this.entry,
     required this.nameKey,
     required this.cellsKeys,
-    required this.sumKey,
+    required this.assets,
+    this.sumKey,
     this.lockedFaction = false,
     this.factions = const [],
     this.onFactionChanged,
@@ -210,7 +236,8 @@ class _PlayerSection extends StatelessWidget {
   final _PlayerEntry entry;
   final Key nameKey;
   final List<Key> cellsKeys;
-  final Key sumKey;
+  final List<String> assets;
+  final Key? sumKey;
   final Key? factionKey;
 
   @override
@@ -254,7 +281,12 @@ class _PlayerSection extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 8),
-            _ScoreCells(entry: entry, cellsKeys: cellsKeys, sumKey: sumKey),
+            _ScoreCells(
+              entry: entry,
+              cellsKeys: cellsKeys,
+              assets: assets,
+              sumKey: sumKey,
+            ),
           ],
         ),
       ),
@@ -262,19 +294,22 @@ class _PlayerSection extends StatelessWidget {
   }
 }
 
-/// 6 ячеек подсчёта игрока: 5 полей ввода и автоматическая сумма —
-/// две строки по 3 ячейки (здания, фундаменты, ресурсы; победы,
-/// артефакты, сумма). Слушает ввод, чтобы сумма пересчитывалась.
+/// Ячейки подсчёта игрока: у игрока 1 — 5 полей на картинках-карточках
+/// и автоматическая сумма (две строки по 3 ячейки 100×100); у игроков
+/// 2–4 — одна ячейка «Итог» с прямым вводом суммы (как в v1). Слушает
+/// ввод, чтобы сумма пересчитывалась.
 class _ScoreCells extends StatefulWidget {
   const _ScoreCells({
     required this.entry,
     required this.cellsKeys,
-    required this.sumKey,
+    required this.assets,
+    this.sumKey,
   });
 
   final _PlayerEntry entry;
   final List<Key> cellsKeys;
-  final Key sumKey;
+  final List<String> assets;
+  final Key? sumKey;
 
   @override
   State<_ScoreCells> createState() => _ScoreCellsState();
@@ -304,101 +339,156 @@ class _ScoreCellsState extends State<_ScoreCells> {
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
+    final assets = widget.assets;
+    if (assets.length == 1) {
+      // Игроки 2–4: одна ячейка «Итог» вместо пяти категорий и автосуммы.
+      return Center(
+        child: _ScoreCell(
+          key: widget.cellsKeys.single,
+          label: 'Итог',
+          assetPath: assets.single,
+          controller: entry.cells.single,
+        ),
+      );
+    }
     return Column(
       children: [
-        Row(
-          children: [
-            for (var i = 0; i < 3; i++)
-              Expanded(
-                child: _ScoreCell(
-                  label: _categoryLabels[i],
-                  controller: entry.cells[i],
-                  key: widget.cellsKeys[i],
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            for (var i = 3; i < 5; i++)
-              Expanded(
-                child: _ScoreCell(
-                  label: _categoryLabels[i],
-                  controller: entry.cells[i],
-                  key: widget.cellsKeys[i],
-                ),
-              ),
-            Expanded(
-              child: _ScoreCell(
-                label: 'Сумма',
-                value: entry.total,
-                key: widget.sumKey,
-              ),
+        _cellRow([
+          for (var i = 0; i < 3; i++)
+            _ScoreCell(
+              key: widget.cellsKeys[i],
+              label: _categoryLabels[i],
+              assetPath: assets[i],
+              controller: entry.cells[i],
             ),
+        ]),
+        const SizedBox(height: 16),
+        _cellRow([
+          for (var i = 3; i < 5; i++)
+            _ScoreCell(
+              key: widget.cellsKeys[i],
+              label: _categoryLabels[i],
+              assetPath: assets[i],
+              controller: entry.cells[i],
+            ),
+          _ScoreCell(
+            key: widget.sumKey,
+            label: 'Сумма',
+            assetPath: _generalAsset,
+            value: entry.total,
+          ),
+        ]),
+      ],
+    );
+  }
+
+  /// Строка ячеек 100×100 с равными отступами: при недостатке ширины
+  /// вся строка пропорционально уменьшается (FittedBox), а не ломается.
+  Widget _cellRow(List<Widget> cells) {
+    return Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          children: [
+            for (var i = 0; i < cells.length; i++) ...[
+              if (i > 0) const SizedBox(width: 16),
+              cells[i],
+            ],
           ],
         ),
-      ],
+      ),
     );
   }
 }
 
-/// Ячейка подсчёта: подпись категории и поле числа, либо сумма (только
-/// для чтения). Внутренний [Key] на поле — для ввода в тестах.
+/// Ячейка подсчёта 100×100: картинка из `assets/score_screen/` (как в v1)
+/// с полем ввода или суммой поверх нижней половины. Без файла-ассета —
+/// fallback: подпись категории на фоне (errorBuilder, как у фонов фракций).
+/// Поле ввода принимает только цифры и минус в начале. Внутренний [Key]
+/// на ячейке — для ввода в тестах.
 class _ScoreCell extends StatelessWidget {
   const _ScoreCell({
     super.key,
     required this.label,
+    required this.assetPath,
     this.controller,
     this.value,
   }) : assert(controller != null || value != null,
             'ячейка должна быть либо полем ввода, либо суммой');
 
   final String label;
+  final String assetPath;
   final TextEditingController? controller;
   final int? value;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 4),
-        if (controller != null)
-          TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-          )
-        else
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: theme.colorScheme.outline),
-              borderRadius: BorderRadius.circular(4),
-              color: theme.colorScheme.surfaceContainerHighest,
-            ),
-            child: Text(
-              '$value',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+    return SizedBox(
+      width: 100,
+      height: 100,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.8,
+              child: Image.asset(
+                assetPath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall,
+                  ),
+                ),
               ),
             ),
           ),
-      ],
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 45,
+            child: controller != null
+                ? TextField(
+                    controller: controller,
+                    inputFormatters: [signedIntInputFormatter],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      signed: true,
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.all(8),
+                      isDense: true,
+                    ),
+                  )
+                : Text(
+                    '$value',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
