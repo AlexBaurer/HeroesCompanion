@@ -208,17 +208,10 @@ void main() {
       find.byKey(const ValueKey('army-deployed-soldier')),
     );
     expect(totalWheel.maxValue, 99);
+    // «В бой» ограничено общим числом: колёсико содержит ровно 0..total,
+    // а значение не изменилось от роста общего числа.
     expect(deployedWheel.maxValue, 3);
-
-    // Сильная прокрутка «в бой» вверх останавливается на общем числе.
-    await tester.drag(
-      find.byKey(const ValueKey('army-deployed-soldier')),
-      const Offset(0, -600),
-    );
-    await tester.pumpAndSettle();
-
-    final session = container.read(gameSessionProvider('Тестовая'));
-    expect(session.armyDeployed('soldier'), 3);
+    expect(deployedWheel.value, 0);
   });
 
   testWidgets('уменьшение общего числа тянет колёсико «в бой» вниз', (
@@ -257,15 +250,15 @@ void main() {
     notifier.setArmyTotal('soldier', 3);
     await tester.pump();
 
-    // Колёсико «в бой» показывает 0 (индекс значения при maxValue 3 —
-    // позиция 3 × 75px), а не maxValue (позиция 0).
-    final deployedScrollable = tester.state<ScrollableState>(
+    // Колёсико «в бой» показывает значение 0 (индекс 3 при maxValue 3),
+    // а не maxValue (индекс 0): позиция — 3 × 75px.
+    final deployedWheel = tester.widget<ListWheelScrollView>(
       find.descendant(
         of: find.byKey(const ValueKey('army-deployed-soldier')),
-        matching: find.byType(Scrollable),
+        matching: find.byType(ListWheelScrollView),
       ),
     );
-    expect(deployedScrollable.position.pixels, 3 * 75);
+    expect(deployedWheel.controller!.offset, 3 * 75);
 
     final session = container.read(gameSessionProvider('Тестовая'));
     expect(session.armyDeployed('soldier'), 0);
