@@ -10,10 +10,10 @@ import 'widgets/load_error.dart';
 
 /// Экран истории игр (тикет 09, доработка — тикет 14): записи из хранилища
 /// с выбором сортировки (по дате или сумме очков, оба направления),
-/// карточки-раскрытия с игроками и итогом, удаление отдельной записи
-/// по кнопке на карточке с диалогом подтверждения, очистка истории
-/// с диалогом подтверждения, системное «назад» ведёт в главное меню
-/// (как в v1).
+/// карточки-раскрытия с игроками и очками, удаление отдельной записи
+/// по кнопке внутри раскрытой карточки с диалогом подтверждения, очистка
+/// истории с диалогом подтверждения, системное «назад» ведёт в главное
+/// меню (как в v1).
 class ScoreHistoryScreen extends ConsumerStatefulWidget {
   const ScoreHistoryScreen({super.key});
 
@@ -231,23 +231,14 @@ class _EmptyHistory extends StatelessWidget {
   }
 }
 
-/// Карточка-раскрытие записи: дата игры и итог в заголовке, число игроков
-/// в подписи, кнопка удаления записи (подтверждение — на экране);
-/// при раскрытии — игроки с фракциями и очками.
-class _RecordCard extends StatefulWidget {
+/// Карточка-раскрытие записи: дата игры и число игроков в заголовке,
+/// при раскрытии — игроки с фракциями и очками и кнопка удаления записи
+/// (подтверждение — на экране).
+class _RecordCard extends StatelessWidget {
   const _RecordCard({required this.entry, required this.onDelete});
 
   final StoredGameRecord entry;
   final VoidCallback onDelete;
-
-  @override
-  State<_RecordCard> createState() => _RecordCardState();
-}
-
-class _RecordCardState extends State<_RecordCard> {
-  /// Раскрыта ли карточка: стрелка поворачивается вместе с состоянием
-  /// (ExpansionTile не вращает произвольный trailing).
-  bool _expanded = false;
 
   static String _playersCountLabel(int count) {
     // В записи всегда 1–4 игрока (GameRecord.maxPlayers).
@@ -257,7 +248,7 @@ class _RecordCardState extends State<_RecordCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final record = widget.entry.record;
+    final record = entry.record;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -267,46 +258,11 @@ class _RecordCardState extends State<_RecordCard> {
         collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         childrenPadding: const EdgeInsets.only(bottom: 8),
-        onExpansionChanged: (expanded) => setState(() => _expanded = expanded),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Игра от ${_formatDate(record.dateTime)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            Text(
-              'Итог: ${record.totalScore}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ],
+        title: Text(
+          'Игра от ${_formatDate(record.dateTime)}',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(_playersCountLabel(record.playerScores.length)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: 'Удалить запись',
-              visualDensity: VisualDensity.compact,
-              color: theme.colorScheme.error,
-              onPressed: widget.onDelete,
-            ),
-            AnimatedRotation(
-              turns: _expanded ? 0.5 : 0,
-              duration: const Duration(milliseconds: 200),
-              child: const Icon(Icons.expand_more),
-            ),
-          ],
-        ),
         children: [
           for (final player in record.playerScores)
             ListTile(
@@ -322,6 +278,16 @@ class _RecordCardState extends State<_RecordCard> {
                 ),
               ),
             ),
+          // Кнопка удаления записи — внутри раскрытой карточки.
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Удалить запись',
+              color: theme.colorScheme.error,
+              onPressed: onDelete,
+            ),
+          ),
         ],
       ),
     );
