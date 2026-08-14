@@ -461,7 +461,7 @@ void main() {
     await _simulateSystemBack();
     await tester.pumpAndSettle();
 
-    expect(find.text('Люди'), findsOneWidget);
+    expect(find.text('Тестовая'), findsOneWidget);
     expect(find.text('Текущий раунд: 1'), findsNothing);
   });
 }
