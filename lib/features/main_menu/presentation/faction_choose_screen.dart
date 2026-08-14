@@ -4,24 +4,74 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/color_hex.dart';
 import '../../../domain/faction.dart';
-import '../../../domain/faction_catalog.dart';
 import '../../factions/data/faction_providers.dart';
 
+/// Экран выбора фракции: все 18 фракций одним бесшовным списком на всю
+/// ширину экрана. Плитка — фон-изображение фракции из данных
+/// ([Faction.backgroundPath]); без неё — сплошной цвет фракции. Имя —
+/// слева по центру с обводкой краёв букв. Иммерсивный AppBar.
 class FactionChooseScreen extends ConsumerWidget {
   const FactionChooseScreen({super.key});
+
+  /// Высота плитки фракции (~120dp; пользователь может скорректировать).
+  static const tileHeight = 120.0;
+
+  /// Обводка краёв букв: у TextStyle нет нативного stroke, поэтому
+  /// рисуются 4 тени по сторонам (тикет 12).
+  static TextStyle strokedTextStyle({double fontSize = 20}) {
+    return TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+      shadows: const [
+        Shadow(color: Colors.black, offset: Offset(2, 0)),
+        Shadow(color: Colors.black, offset: Offset(-2, 0)),
+        Shadow(color: Colors.black, offset: Offset(0, 2)),
+        Shadow(color: Colors.black, offset: Offset(0, -2)),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog = ref.watch(factionCatalogProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Выбери фракцию')),
+      extendBodyBehindAppBar: true,
+      appBar: const _ImmersiveAppBar(),
       body: catalog.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _LoadError(
           error: error,
           onRetry: () => ref.invalidate(factionCatalogProvider),
         ),
-        data: (data) => _FactionSections(catalog: data),
+        data: (data) => _FactionList(factions: data.factions),
+      ),
+    );
+  }
+}
+
+/// Иммерсивный AppBar: полупрозрачная подложка, заголовок с той же
+/// обводкой, что и имена на плитках, «назад» — на полупрозрачном круге.
+class _ImmersiveAppBar extends StatelessWidget {
+  const _ImmersiveAppBar();
+
+  static const _scrim = Color(0x59000000);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: _scrim,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: const Center(
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: _scrim, shape: BoxShape.circle),
+          child: BackButton(color: Colors.white),
+        ),
+      ),
+      title: Text(
+        'Выбери фракцию',
+        style: FactionChooseScreen.strokedTextStyle(fontSize: 18),
       ),
     );
   }
@@ -62,70 +112,63 @@ class _LoadError extends StatelessWidget {
   }
 }
 
-/// 18 фракций, сгруппированных по частям игры (3 секции по 6).
-class _FactionSections extends StatelessWidget {
-  const _FactionSections({required this.catalog});
+/// Один скролл, все 18 фракций подряд в порядке каталога (части 1→3),
+/// без заголовков секций, отступов и разделителей.
+class _FactionList extends StatelessWidget {
+  const _FactionList({required this.factions});
 
-  final FactionCatalog catalog;
+  final List<Faction> factions;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 12.0;
-        final buttonWidth = (constraints.maxWidth - gap) / 2;
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            for (final part in catalog.gameParts) ...[
-              Text(
-                'Часть $part',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: gap,
-                runSpacing: gap,
-                children: [
-                  for (final faction in catalog.factionsOf(part))
-                    _FactionButton(
-                      faction: faction,
-                      width: buttonWidth,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-          ],
-        );
-      },
+    return ListView.builder(
+      // Иммерсивный AppBar перекрывает верх экрана: список начинается
+      // под ним, но прокручивается под полупрозрачную подложку.
+      padding: EdgeInsets.only(
+        top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+      ),
+      itemCount: factions.length,
+      itemBuilder: (context, index) => _FactionTile(faction: factions[index]),
     );
   }
 }
 
-class _FactionButton extends StatelessWidget {
-  const _FactionButton({required this.faction, required this.width});
+/// Плитка на всю ширину экрана: фон — изображение фракции (cover),
+/// без ассета — сплошной цвет фракции; имя — слева по вертикали по
+/// центру с обводкой краёв букв. Тап — сразу на экран партии.
+class _FactionTile extends StatelessWidget {
+  const _FactionTile({required this.faction});
 
   final Faction faction;
-  final double width;
 
   @override
   Widget build(BuildContext context) {
-    final background = colorFromHex(faction.color);
     return SizedBox(
-      width: width,
-      height: 64,
-      child: FilledButton(
-        style: FilledButton.styleFrom(
-          backgroundColor: background,
-          foregroundColor: contrastingForeground(background),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
+      height: FactionChooseScreen.tileHeight,
+      width: double.infinity,
+      child: InkWell(
+        onTap: () => context.push('/faction/${faction.name}'),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              faction.backgroundPath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  ColoredBox(color: colorFromHex(faction.color)),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Text(
+                  faction.name,
+                  style: FactionChooseScreen.strokedTextStyle(),
+                ),
+              ),
+            ),
+          ],
         ),
-        onPressed: () => context.push('/faction/${faction.name}'),
-        child: Text(faction.name, textAlign: TextAlign.center),
       ),
     );
   }
