@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app_router.dart';
 import 'app/app_theme.dart';
+import 'features/scores/data/game_record_migration.dart';
+import 'features/scores/data/game_record_providers.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Первая партия (тикет 10): перенос записей v1 из `score_records`
+  // до старта приложения; при сбое приложение всё равно запускается,
+  // миграция повторится при следующем запуске (флаг не установлен).
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await GameRecordMigration(
+      preferences: SharedPreferencesAdapter(instance: prefs),
+    ).migrateIfNeeded();
+  } catch (error) {
+    debugPrint('Не удалось мигрировать записи v1: $error');
+  }
   runApp(const ProviderScope(child: HeroesCompanionApp()));
 }
 

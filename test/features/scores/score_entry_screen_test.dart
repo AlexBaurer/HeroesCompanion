@@ -11,7 +11,7 @@ import 'package:heroescompanion/features/scores/data/game_record_storage.dart';
 import 'package:heroescompanion/features/scores/presentation/score_history_screen.dart';
 import 'package:heroescompanion/main.dart';
 
-import '../../helpers/fake_string_list_preferences.dart';
+import '../../helpers/fake_preferences.dart';
 
 String _factionJson(int index) {
   return '''
@@ -43,7 +43,7 @@ Future<ProviderContainer> _openScoreScreen(
     overrides: [
       factionRepositoryProvider.overrideWithValue(_fakeRepository()),
       gameRecordStorageProvider.overrideWith(
-        (ref) => GameRecordStorage(preferences: FakeStringListPreferences()),
+        (ref) => GameRecordStorage(preferences: FakePreferences()),
       ),
     ],
   );

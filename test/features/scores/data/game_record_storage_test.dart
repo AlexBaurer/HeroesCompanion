@@ -4,7 +4,7 @@ import 'package:heroescompanion/domain/game_record.dart';
 import 'package:heroescompanion/domain/game_record_codec.dart';
 import 'package:heroescompanion/features/scores/data/game_record_storage.dart';
 
-import '../../../helpers/fake_string_list_preferences.dart';
+import '../../../helpers/fake_preferences.dart';
 
 const _codec = GameRecordCodec();
 
@@ -19,11 +19,11 @@ GameRecord _record({DateTime? dateTime, List<PlayerScore>? players}) {
 }
 
 void main() {
-  late FakeStringListPreferences prefs;
+  late FakePreferences prefs;
   late GameRecordStorage storage;
 
   setUp(() {
-    prefs = FakeStringListPreferences();
+    prefs = FakePreferences();
     storage = GameRecordStorage(preferences: prefs);
   });
 
@@ -31,7 +31,7 @@ void main() {
     test('пишет JSON-строку формата v1', () async {
       await storage.add(_record());
 
-      final stored = prefs.store[GameRecordStorage.recordsKey];
+      final stored = prefs.strings[GameRecordStorage.recordsKey];
       expect(stored, hasLength(1));
       expect(_codec.decode(stored!.single).toJson(), _record().toJson());
     });
@@ -45,7 +45,7 @@ void main() {
       await storage.add(first);
       await storage.add(second);
 
-      final stored = prefs.store[GameRecordStorage.recordsKey]!;
+      final stored = prefs.strings[GameRecordStorage.recordsKey]!;
       expect(stored, hasLength(2));
       expect(_codec.decode(stored[0]).toJson(), first.toJson());
       expect(_codec.decode(stored[1]).toJson(), second.toJson());
@@ -54,7 +54,7 @@ void main() {
     test('записывает байт-в-байт строку формата v1', () async {
       await storage.add(_record());
 
-      final stored = prefs.store[GameRecordStorage.recordsKey]!.single;
+      final stored = prefs.strings[GameRecordStorage.recordsKey]!.single;
       const expected =
           '{"dateTime":"2026-08-12T18:30:00.000","playerScores":'
           '[{"playerName":"Иван","score":42,"faction":"Майя"}]}';
@@ -93,7 +93,7 @@ void main() {
 
     test('битые строки пропускаются, валидные читаются', () async {
       await storage.add(_record());
-      prefs.store[GameRecordStorage.recordsKey]!.insert(0, 'не json');
+      prefs.strings[GameRecordStorage.recordsKey]!.insert(0, 'не json');
 
       final loaded = await storage.loadAll();
 
@@ -108,7 +108,7 @@ void main() {
 
       await storage.clear();
 
-      expect(prefs.store.containsKey(GameRecordStorage.recordsKey), isFalse);
+      expect(prefs.strings.containsKey(GameRecordStorage.recordsKey), isFalse);
       expect(await storage.loadAll(), isEmpty);
     });
 

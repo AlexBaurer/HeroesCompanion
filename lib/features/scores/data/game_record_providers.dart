@@ -5,9 +5,9 @@ import 'package:heroescompanion/domain/game_record.dart';
 
 import 'game_record_storage.dart';
 
-/// Адаптер [StringListPreferences] поверх shared_preferences.
-class SharedPreferencesStringListAdapter implements StringListPreferences {
-  const SharedPreferencesStringListAdapter({required this.instance});
+/// Адаптер [Preferences] поверх shared_preferences.
+class SharedPreferencesAdapter implements Preferences {
+  const SharedPreferencesAdapter({required this.instance});
 
   final SharedPreferences instance;
 
@@ -22,6 +22,16 @@ class SharedPreferencesStringListAdapter implements StringListPreferences {
   }
 
   @override
+  Future<bool?> getBool(String key) async {
+    return instance.getBool(key);
+  }
+
+  @override
+  Future<void> setBool(String key, bool value) async {
+    await instance.setBool(key, value);
+  }
+
+  @override
   Future<void> remove(String key) async {
     await instance.remove(key);
   }
@@ -32,7 +42,7 @@ class SharedPreferencesStringListAdapter implements StringListPreferences {
 final gameRecordStorageProvider = FutureProvider<GameRecordStorage>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   return GameRecordStorage(
-    preferences: SharedPreferencesStringListAdapter(instance: prefs),
+    preferences: SharedPreferencesAdapter(instance: prefs),
   );
 });
 

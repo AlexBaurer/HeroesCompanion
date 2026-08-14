@@ -1,12 +1,16 @@
 import 'package:heroescompanion/domain/game_record.dart';
 import 'package:heroescompanion/domain/game_record_codec.dart';
 
-/// Минимальный доступ к хранилищу строковых списков (в проде —
-/// shared_preferences): чтение, запись и удаление списка строк по ключу.
-abstract interface class StringListPreferences {
+/// Минимальный доступ к хранилищу ключ-значение (в проде —
+/// shared_preferences): чтение, запись и удаление значений по ключу.
+abstract interface class Preferences {
   Future<List<String>?> getStringList(String key);
 
   Future<void> setStringList(String key, List<String> value);
+
+  Future<bool?> getBool(String key);
+
+  Future<void> setBool(String key, bool value);
 
   Future<void> remove(String key);
 }
@@ -15,7 +19,7 @@ abstract interface class StringListPreferences {
 /// список JSON-строк в формате v1 (ADR-0002) — тот же формат, что писала
 /// v1, чтобы история оставалась совместимой и читаемой.
 ///
-/// Хранилище инжектируется ([StringListPreferences]), чтобы код оставался
+/// Хранилище инжектируется ([Preferences]), чтобы код оставался
 /// чистым Dart: в приложении — адаптер над SharedPreferences, в тестах —
 /// фейк в памяти.
 class GameRecordStorage {
@@ -24,7 +28,7 @@ class GameRecordStorage {
   /// Ключ истории в shared_preferences (совпадает с v1).
   static const recordsKey = 'score_records';
 
-  final StringListPreferences preferences;
+  final Preferences preferences;
 
   static const _codec = GameRecordCodec();
 

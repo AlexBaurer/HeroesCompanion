@@ -7,12 +7,14 @@ import 'package:heroescompanion/app/app_router.dart';
 import 'package:heroescompanion/domain/game_record.dart';
 import 'package:heroescompanion/features/factions/data/faction_providers.dart';
 import 'package:heroescompanion/features/factions/data/faction_repository.dart';
+import 'package:heroescompanion/features/scores/data/game_record_migration.dart';
 import 'package:heroescompanion/features/scores/data/game_record_providers.dart';
 import 'package:heroescompanion/features/scores/data/game_record_storage.dart';
 import 'package:heroescompanion/features/scores/presentation/score_history_screen.dart';
 import 'package:heroescompanion/main.dart';
 
-import '../../helpers/fake_string_list_preferences.dart';
+import '../../helpers/fake_preferences.dart';
+import '../../helpers/v1_records.dart';
 
 String _factionJson(int index) {
   return '''
@@ -96,7 +98,7 @@ void main() {
   ) async {
     await _openHistoryScreen(
       tester,
-      storage: GameRecordStorage(preferences: FakeStringListPreferences()),
+      storage: GameRecordStorage(preferences: FakePreferences()),
     );
 
     expect(find.text('История пуста'), findsOneWidget);
@@ -110,7 +112,7 @@ void main() {
   testWidgets('записи читаются и сортируются по дате, новые сверху', (
     tester,
   ) async {
-    final storage = GameRecordStorage(preferences: FakeStringListPreferences());
+    final storage = GameRecordStorage(preferences: FakePreferences());
     await storage.add(_record(dateTime: DateTime(2026, 8, 1)));
     await storage.add(_record(dateTime: DateTime(2026, 9, 1)));
     await storage.add(_record(dateTime: DateTime(2026, 7, 1)));
@@ -131,7 +133,7 @@ void main() {
   testWidgets('раскрытие карточки показывает игроков, фракции и очки', (
     tester,
   ) async {
-    final storage = GameRecordStorage(preferences: FakeStringListPreferences());
+    final storage = GameRecordStorage(preferences: FakePreferences());
     await storage.add(
       _record(
         dateTime: DateTime(2026, 8, 1, 18, 30),
@@ -157,7 +159,7 @@ void main() {
   testWidgets('очистка с подтверждением удаляет записи и показывает пустое', (
     tester,
   ) async {
-    final prefs = FakeStringListPreferences();
+    final prefs = FakePreferences();
     final storage = GameRecordStorage(preferences: prefs);
     await storage.add(_record());
     await _openHistoryScreen(tester, storage: storage);
@@ -179,7 +181,7 @@ void main() {
   });
 
   testWidgets('отмена диалога не очищает историю', (tester) async {
-    final prefs = FakeStringListPreferences();
+    final prefs = FakePreferences();
     final storage = GameRecordStorage(preferences: prefs);
     await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
     await _openHistoryScreen(tester, storage: storage);
@@ -194,7 +196,7 @@ void main() {
   });
 
   testWidgets('системное «назад» ведёт в главное меню', (tester) async {
-    final storage = GameRecordStorage(preferences: FakeStringListPreferences());
+    final storage = GameRecordStorage(preferences: FakePreferences());
     await storage.add(_record());
     await _openHistoryScreen(tester, storage: storage);
 
@@ -208,7 +210,7 @@ void main() {
   testWidgets('новая запись появляется в уже открывавшейся истории', (
     tester,
   ) async {
-    final storage = GameRecordStorage(preferences: FakeStringListPreferences());
+    final storage = GameRecordStorage(preferences: FakePreferences());
     await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
     await _openHistoryScreen(tester, storage: storage);
     expect(find.text('Игра от 01.08.2026 18:30'), findsOneWidget);
@@ -228,5 +230,27 @@ void main() {
     await tester.tap(find.textContaining('Игра от').first);
     await tester.pumpAndSettle();
     expect(find.text('Аня (Тестовая)'), findsOneWidget);
+  });
+
+  testWidgets('записи v1 после миграции первой партии видны в истории', (
+    tester,
+  ) async {
+    final prefs = FakePreferences();
+    prefs.strings[GameRecordStorage.recordsKey] = [v1RecordSource];
+    // Первый запуск v2: миграция до старта приложения (как в main()).
+    await GameRecordMigration(preferences: prefs).migrateIfNeeded();
+    await _openHistoryScreen(
+      tester,
+      storage: GameRecordStorage(preferences: prefs),
+    );
+
+    expect(find.text('Игра от 12.08.2026 18:30'), findsOneWidget);
+    await tester.tap(find.text('Игра от 12.08.2026 18:30'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Иван (Майя)'), findsOneWidget);
+    expect(find.text('Пётр (Наги)'), findsOneWidget);
+    expect(find.text('42'), findsOneWidget);
+    expect(find.text('35'), findsOneWidget);
   });
 }
