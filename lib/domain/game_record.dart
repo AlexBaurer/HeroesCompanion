@@ -41,6 +41,16 @@ class GameRecord {
   final DateTime dateTime;
   final List<PlayerScore> playerScores;
 
+  /// Сумма очков всех игроков записи — ключ сортировки «по сумме очков»
+  /// (тикет 14).
+  int get totalScore {
+    var sum = 0;
+    for (final player in playerScores) {
+      sum += player.score;
+    }
+    return sum;
+  }
+
   /// JSON в формате v1 (ADR-0002): `{dateTime, playerScores}`,
   /// дата — ISO-8601 строка.
   Map<String, dynamic> toJson() {

@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:heroescompanion/domain/game_record.dart';
-
 import 'game_record_storage.dart';
 
 /// Адаптер [Preferences] поверх shared_preferences.
@@ -46,11 +44,13 @@ final gameRecordStorageProvider = FutureProvider<GameRecordStorage>((ref) async 
   );
 });
 
-/// История игр для экрана: записи из хранилища, отсортированные
-/// по дате — новые сверху (тикет 09).
-final scoreHistoryProvider = FutureProvider<List<GameRecord>>((ref) async {
+/// История игр для экрана: записи из хранилища в порядке записи.
+/// Сортировка — выбор экрана истории (тикет 14): экран применяет
+/// компаратор из домена к [StoredGameRecord.record], удаляет
+/// по [StoredGameRecord.index].
+final scoreHistoryProvider = FutureProvider<List<StoredGameRecord>>((
+  ref,
+) async {
   final storage = await ref.watch(gameRecordStorageProvider.future);
-  final records = await storage.loadAll();
-  records.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-  return records;
+  return storage.loadAll();
 });

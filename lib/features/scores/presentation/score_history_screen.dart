@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:heroescompanion/domain/game_record.dart';
+import 'package:heroescompanion/domain/history_sort.dart';
 
 import '../data/game_record_providers.dart';
+import '../data/game_record_storage.dart';
 import 'widgets/load_error.dart';
 
-/// Экран истории игр (тикет 09): записи из хранилища, новые сверху,
-/// карточки-раскрытия с игроками и очками, очистка истории с диалогом
-/// подтверждения, системное «назад» ведёт в главное меню (как в v1).
+/// Экран истории игр (тикет 09, доработка — тикет 14): записи из хранилища
+/// с выбором сортировки (по дате или сумме очков, оба направления),
+/// карточки-раскрытия с игроками и итогом, удаление отдельной записи
+/// по кнопке на карточке с диалогом подтверждения, очистка истории
+/// с диалогом подтверждения, системное «назад» ведёт в главное меню
+/// (как в v1).
 class ScoreHistoryScreen extends ConsumerStatefulWidget {
   const ScoreHistoryScreen({super.key});
 
@@ -17,7 +21,70 @@ class ScoreHistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<ScoreHistoryScreen> createState() => _ScoreHistoryScreenState();
 }
 
+/// Подпись варианта сортировки для меню.
+String _sortLabel(HistorySort sort) {
+  switch (sort) {
+    case HistorySort.dateNewestFirst:
+      return 'По дате, новые сверху';
+    case HistorySort.dateOldestFirst:
+      return 'По дате, старые сверху';
+    case HistorySort.scoreDescending:
+      return 'По сумме очков, больше сверху';
+    case HistorySort.scoreAscending:
+      return 'По сумме очков, меньше сверху';
+  }
+}
+
+/// «дд.мм.гггг чч:мм», как в v1.
+String _formatDate(DateTime date) {
+  String twoDigits(int value) => value.toString().padLeft(2, '0');
+  return '${twoDigits(date.day)}.${twoDigits(date.month)}.${date.year} '
+      '${twoDigits(date.hour)}:${twoDigits(date.minute)}';
+}
+
 class _ScoreHistoryScreenState extends ConsumerState<ScoreHistoryScreen> {
+  /// Выбранная сортировка истории: по умолчанию — новые сверху,
+  /// как в тикете 09.
+  HistorySort _sort = HistorySort.dateNewestFirst;
+
+  /// Диалог подтверждения удаления одной записи: «Отмена» не трогает
+  /// историю, «Удалить» стирает запись по её индексу в хранилище.
+  Future<void> _confirmDelete(StoredGameRecord entry) async {
+    final dateLabel = _formatDate(entry.record.dateTime);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить запись'),
+        content: Text(
+          'Вы уверены, что хотите удалить запись от $dateLabel?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              'Удалить',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final storage = await ref.read(gameRecordStorageProvider.future);
+    await storage.removeAt(entry.index);
+    ref.invalidate(scoreHistoryProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Запись удалена')),
+    );
+  }
+
   /// Диалог подтверждения очистки: «Отмена» не трогает историю,
   /// «Удалить» стирает все записи.
   Future<void> _confirmClear() async {
@@ -70,12 +137,30 @@ class _ScoreHistoryScreenState extends ConsumerState<ScoreHistoryScreen> {
           title: const Text('История игр'),
           actions: [
             history.when(
-              data: (records) => records.isEmpty
+              data: (entries) => entries.isEmpty
                   ? const SizedBox.shrink()
-                  : IconButton(
-                      icon: const Icon(Icons.delete),
-                      tooltip: 'Очистить историю',
-                      onPressed: _confirmClear,
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PopupMenuButton<HistorySort>(
+                          icon: const Icon(Icons.sort),
+                          tooltip: 'Сортировка',
+                          onSelected: (sort) => setState(() => _sort = sort),
+                          itemBuilder: (context) => [
+                            for (final sort in HistorySort.values)
+                              CheckedPopupMenuItem(
+                                value: sort,
+                                checked: sort == _sort,
+                                child: Text(_sortLabel(sort)),
+                              ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          tooltip: 'Очистить историю',
+                          onPressed: _confirmClear,
+                        ),
+                      ],
                     ),
               loading: () => const SizedBox.shrink(),
               error: (error, stackTrace) => const SizedBox.shrink(),
@@ -89,14 +174,24 @@ class _ScoreHistoryScreenState extends ConsumerState<ScoreHistoryScreen> {
             error: error,
             onRetry: () => ref.invalidate(scoreHistoryProvider),
           ),
-          data: (records) => records.isEmpty
-              ? const _EmptyHistory()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: records.length,
-                  itemBuilder: (context, index) =>
-                      _RecordCard(record: records[index]),
-                ),
+          data: (entries) {
+            final sorted = [...entries];
+            sorted.sort(
+              (a, b) => historyComparator(_sort)(a.record, b.record),
+            );
+            if (sorted.isEmpty) return const _EmptyHistory();
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              itemCount: sorted.length,
+              itemBuilder: (context, index) {
+                final entry = sorted[index];
+                return _RecordCard(
+                  entry: entry,
+                  onDelete: () => _confirmDelete(entry),
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -136,21 +231,23 @@ class _EmptyHistory extends StatelessWidget {
   }
 }
 
-/// Карточка-раскрытие записи: дата игры и число игроков; при раскрытии —
-/// игроки с фракциями и очками.
-class _RecordCard extends StatelessWidget {
-  const _RecordCard({required this.record});
+/// Карточка-раскрытие записи: дата игры и итог в заголовке, число игроков
+/// в подписи, кнопка удаления записи (подтверждение — на экране);
+/// при раскрытии — игроки с фракциями и очками.
+class _RecordCard extends StatefulWidget {
+  const _RecordCard({required this.entry, required this.onDelete});
 
-  final GameRecord record;
+  final StoredGameRecord entry;
+  final VoidCallback onDelete;
 
-  static String _twoDigits(int value) => value.toString().padLeft(2, '0');
+  @override
+  State<_RecordCard> createState() => _RecordCardState();
+}
 
-  /// «дд.мм.гггг чч:мм», как в v1.
-  String get _dateLabel {
-    final date = record.dateTime;
-    return '${_twoDigits(date.day)}.${_twoDigits(date.month)}.${date.year} '
-        '${_twoDigits(date.hour)}:${_twoDigits(date.minute)}';
-  }
+class _RecordCardState extends State<_RecordCard> {
+  /// Раскрыта ли карточка: стрелка поворачивается вместе с состоянием
+  /// (ExpansionTile не вращает произвольный trailing).
+  bool _expanded = false;
 
   static String _playersCountLabel(int count) {
     // В записи всегда 1–4 игрока (GameRecord.maxPlayers).
@@ -159,14 +256,57 @@ class _RecordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final record = widget.entry.record;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
-        title: Text(
-          'Игра от $_dateLabel',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        shape: const RoundedRectangleBorder(side: BorderSide.none),
+        collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        childrenPadding: const EdgeInsets.only(bottom: 8),
+        onExpansionChanged: (expanded) => setState(() => _expanded = expanded),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Игра от ${_formatDate(record.dateTime)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            Text(
+              'Итог: ${record.totalScore}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ],
         ),
         subtitle: Text(_playersCountLabel(record.playerScores.length)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Удалить запись',
+              visualDensity: VisualDensity.compact,
+              color: theme.colorScheme.error,
+              onPressed: widget.onDelete,
+            ),
+            AnimatedRotation(
+              turns: _expanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.expand_more),
+            ),
+          ],
+        ),
         children: [
           for (final player in record.playerScores)
             ListTile(
