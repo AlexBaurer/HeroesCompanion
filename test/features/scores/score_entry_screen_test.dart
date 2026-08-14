@@ -12,6 +12,7 @@ import 'package:heroescompanion/features/scores/presentation/score_history_scree
 import 'package:heroescompanion/main.dart';
 
 import '../../helpers/fake_preferences.dart';
+import '../../helpers/simulate_system_back.dart';
 
 String _factionJson(int index) {
   return '''
@@ -108,7 +109,15 @@ void main() {
   ) async {
     await _openScoreScreen(tester);
 
+    // Тикет 18: верхнего бара нет — заголовок «Ввод очков» в теле экрана.
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.byType(BackButton), findsNothing);
     expect(find.text('Ввод очков'), findsOneWidget);
+    final titleContext = tester.element(find.text('Ввод очков'));
+    expect(
+      tester.widget<Text>(find.text('Ввод очков')).style,
+      Theme.of(titleContext).textTheme.titleLarge,
+    );
     expect(find.text('Фракция: Тестовая'), findsOneWidget);
     for (var player = 1; player <= 4; player++) {
       expect(find.text('Игрок $player'), findsOneWidget);
@@ -281,5 +290,20 @@ void main() {
     expect(find.text('Ввод очков'), findsOneWidget);
     expect(find.byType(ScoreHistoryScreen), findsNothing);
     expect(await _savedRecords(container), isEmpty);
+  });
+
+  testWidgets('системное «назад» (одно нажатие) ведёт на главное меню', (
+    tester,
+  ) async {
+    await _openScoreScreen(tester);
+
+    await simulateSystemBack();
+    await tester.pumpAndSettle();
+
+    // Главное меню, а не экран партии: ввод очков открыт напрямую,
+    // партии в стеке нет (тикет 18 — PopScope + go('/')).
+    expect(find.text('Герои — Помощник'), findsOneWidget);
+    expect(find.text('Начать игру'), findsOneWidget);
+    expect(find.text('Ввод очков'), findsNothing);
   });
 }

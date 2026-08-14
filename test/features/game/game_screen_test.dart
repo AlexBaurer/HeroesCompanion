@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,6 +9,8 @@ import 'package:heroescompanion/features/factions/data/faction_repository.dart';
 import 'package:heroescompanion/features/game/data/game_session_provider.dart';
 import 'package:heroescompanion/features/game/presentation/widgets/resource_counter_wheel.dart';
 import 'package:heroescompanion/main.dart';
+
+import '../../helpers/simulate_system_back.dart';
 
 /// Богатая фракция: 2 юнита (toggle и counter модификаторы), 3 ресурса.
 const _richFactionJson = '''
@@ -102,21 +103,6 @@ Future<ProviderContainer> _openGameScreen(
   await tester.tap(find.text(factionName));
   await tester.pumpAndSettle();
   return container;
-}
-
-/// Симулирует системное «назад» (как в тестах Flutter framework):
-/// платформенное сообщение popRoute по каналу навигации — полный путь
-/// через RootBackButtonDispatcher (go_router) → RouterDelegate.popRoute →
-/// maybePop → PopScope.
-Future<void> _simulateSystemBack() {
-  return TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .handlePlatformMessage(
-        SystemChannels.navigation.name,
-        const JSONMessageCodec().encodeMessage(<String, dynamic>{
-          'method': 'popRoute',
-        }),
-        (ByteData? _) {},
-      );
 }
 
 void main() {
@@ -266,21 +252,33 @@ void main() {
     expect(find.text('Сила в бой: 0'), findsOneWidget);
   });
 
-  testWidgets('«Закончить игру» ведёт на ввод очков с фракцией игрока', (
-    tester,
-  ) async {
-    await _openGameScreen(tester);
+  testWidgets(
+    '«Закончить игру» ведёт на ввод очков; «назад» оттуда — на главное меню',
+    (tester) async {
+      await _openGameScreen(tester);
 
-    for (var i = 0; i < 15; i++) {
-      await tester.tap(find.text('Следующий раунд'));
-      await tester.pump();
-    }
-    await tester.tap(find.text('Закончить игру'));
-    await tester.pumpAndSettle();
+      for (var i = 0; i < 15; i++) {
+        await tester.tap(find.text('Следующий раунд'));
+        await tester.pump();
+      }
+      await tester.tap(find.text('Закончить игру'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Ввод очков'), findsOneWidget);
-    expect(find.text('Фракция: Тестовая'), findsOneWidget);
-  });
+      expect(find.text('Ввод очков'), findsOneWidget);
+      expect(find.text('Фракция: Тестовая'), findsOneWidget);
+
+      // Тикет 18: партия уходит из стека (pushReplacement), ввод очков
+      // без верхнего бара; одно системное «назад» — на главное меню,
+      // вернуться в партию невозможно.
+      expect(find.byType(AppBar), findsNothing);
+      await simulateSystemBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Начать игру'), findsOneWidget);
+      expect(find.text('Текущий раунд: 16'), findsNothing);
+      expect(find.text('Ввод очков'), findsNothing);
+    },
+  );
 
   testWidgets('модалка модификаторов читает сессию и не теряет состояние', (
     tester,
@@ -452,13 +450,13 @@ void main() {
   testWidgets('выход — только двойным «назад»', (tester) async {
     await _openGameScreen(tester);
 
-    await _simulateSystemBack();
+    await simulateSystemBack();
     await tester.pump();
 
     expect(find.text('Нажмите «назад» ещё раз, чтобы выйти'), findsOneWidget);
     expect(find.text('Текущий раунд: 1'), findsOneWidget);
 
-    await _simulateSystemBack();
+    await simulateSystemBack();
     await tester.pumpAndSettle();
 
     expect(find.text('Тестовая'), findsOneWidget);

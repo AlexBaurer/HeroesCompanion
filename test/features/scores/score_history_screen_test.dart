@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,6 +13,7 @@ import 'package:heroescompanion/features/scores/presentation/score_history_scree
 import 'package:heroescompanion/main.dart';
 
 import '../../helpers/fake_preferences.dart';
+import '../../helpers/simulate_system_back.dart';
 import '../../helpers/v1_records.dart';
 
 String _factionJson(int index) {
@@ -75,21 +75,6 @@ Future<ProviderContainer> _openHistoryScreen(
   appRouter.go('/score_history');
   await tester.pumpAndSettle();
   return container;
-}
-
-/// Симулирует системное «назад» (как в тестах Flutter framework):
-/// платформенное сообщение popRoute по каналу навигации — полный путь
-/// через RootBackButtonDispatcher (go_router) → RouterDelegate.popRoute →
-/// maybePop → PopScope.
-Future<void> _simulateSystemBack() {
-  return TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .handlePlatformMessage(
-        SystemChannels.navigation.name,
-        const JSONMessageCodec().encodeMessage(<String, dynamic>{
-          'method': 'popRoute',
-        }),
-        (ByteData? _) {},
-      );
 }
 
 void main() {
@@ -345,7 +330,7 @@ void main() {
     await storage.add(_record());
     await _openHistoryScreen(tester, storage: storage);
 
-    await _simulateSystemBack();
+    await simulateSystemBack();
     await tester.pumpAndSettle();
 
     expect(find.text('Начать игру'), findsOneWidget);
