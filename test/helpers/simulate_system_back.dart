@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// Симулирует системное «назад» (как в тестах Flutter framework):
 /// платформенное сообщение popRoute по каналу навигации — полный путь
