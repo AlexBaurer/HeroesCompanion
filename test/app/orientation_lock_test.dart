@@ -4,20 +4,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heroescompanion/app/orientation_lock.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('lockPortraitOrientation', () {
-    final messenger = TestWidgetsFlutterBinding.instance.defaultBinaryMessenger;
-
-    tearDown(() {
-      messenger.setMockMethodCallHandler(SystemChannels.platform, null);
-    });
-
-    test('передаёт Flutter только портретную ориентацию (portraitUp)', () async {
+    testWidgets('передаёт Flutter только портретную ориентацию (portraitUp)', (
+      tester,
+    ) async {
       final calls = <MethodCall>[];
-      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        calls.add(call);
-        return null;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          calls.add(call);
+          return null;
+        },
+      );
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
       });
 
       await lockPortraitOrientation();
@@ -26,10 +29,9 @@ void main() {
         (c) => c.method == 'SystemChrome.setPreferredOrientations',
       );
       expect(call, hasLength(1));
-      expect(
-        call.first.arguments['orientations'],
-        ['DeviceOrientation.portraitUp'],
-      );
+      final orientations =
+          (call.first.arguments as Map<Object?, Object?>)['orientations'];
+      expect(orientations, ['DeviceOrientation.portraitUp']);
     });
   });
 }
