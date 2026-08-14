@@ -234,6 +234,213 @@ void main() {
     });
   });
 
+  group('battleUpgrade: «Лавка бронника» (эльфы)', () {
+    const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "assets/faction_background/elfs_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1},
+    {"id": "grifon", "name": "Грифон", "power": 3},
+    {"id": "ent", "name": "Энт", "power": 6}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "powers": {"pixi": 2, "grifon": 5, "ent": 10}
+  }
+}
+''';
+
+    test('разбирается: цена-ресурс, лимит, целевые силы юнитов', () {
+      final faction = parse(json);
+
+      final upgrade = faction.battleUpgrade;
+      expect(upgrade, isNotNull);
+      expect(upgrade!.resource, 'Дерево');
+      expect(upgrade.limit, 2);
+      expect(upgrade.powers, const {'pixi': 2, 'grifon': 5, 'ent': 10});
+      expect(upgrade.targetPowerOf('ent'), 10);
+      expect(upgrade.targetPowerOf('dragon'), isNull);
+    });
+
+    test('без поля battleUpgrade — null', () {
+      expect(parse(_humansJson).battleUpgrade, isNull);
+    });
+
+    test('цена-ресурс вне ресурсов фракции → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1}
+  ],
+  "battleUpgrade": {
+    "resource": "Ярость",
+    "limit": 2,
+    "powers": {"pixi": 2}
+  }
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'resource'),
+        ),
+      );
+    });
+
+    test('лимит меньше 1 → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 0,
+    "powers": {"pixi": 2}
+  }
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'limit'),
+        ),
+      );
+    });
+
+    test('целевая сила для неизвестного юнита → FactionUnknownUnitException', () {
+      const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "powers": {"dragon": 2}
+  }
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionUnknownUnitException>()
+              .having((e) => e.unitId, 'unitId', 'dragon'),
+        ),
+      );
+    });
+
+    test('пустые целевые силы → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "powers": {}
+  }
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'powers'),
+        ),
+      );
+    });
+
+    test('целевая сила строкой → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "powers": {"pixi": "2"}
+  }
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'pixi'),
+        ),
+      );
+    });
+
+    test('неизвестное поле в battleUpgrade → FactionUnknownFieldException', () {
+      const json = '''
+{
+  "name": "Эльфы",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "cost": 3,
+    "powers": {"pixi": 2}
+  }
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionUnknownFieldException>()
+              .having((e) => e.field, 'field', 'cost'),
+        ),
+      );
+    });
+  });
+
   group('битый вход', () {
     test('некорректный JSON-синтаксис → FactionSyntaxException', () {
       expect(

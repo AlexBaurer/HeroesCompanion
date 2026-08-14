@@ -29,8 +29,30 @@ const _richFactionJson = '''
 }
 ''';
 
+/// Фракция с «Лавкой бронника» (эльфы): без модификаторов, с апгрейдом.
+const _elfFactionJson = '''
+{
+  "name": "Лавка",
+  "gamePart": 1,
+  "color": "#732EB4",
+  "background": "assets/faction_background/elfs_low.PNG",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "pixi", "name": "Пикси", "power": 1},
+    {"id": "grifon", "name": "Грифон", "power": 3},
+    {"id": "ent", "name": "Энт", "power": 6}
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "powers": {"pixi": 2, "grifon": 5, "ent": 10}
+  }
+}
+''';
+
 String _factionJson(int index) {
   if (index == 0) return _richFactionJson;
+  if (index == 1) return _elfFactionJson;
   return '''
 {
   "name": "Тестовая $index",
@@ -52,7 +74,10 @@ FactionRepository _fakeRepository() {
   return FactionRepository(load: (path) async => byPath[path]!);
 }
 
-Future<ProviderContainer> _openGameScreen(WidgetTester tester) async {
+Future<ProviderContainer> _openGameScreen(
+  WidgetTester tester, {
+  String factionName = 'Тестовая',
+}) async {
   final container = ProviderContainer(
     overrides: [factionRepositoryProvider.overrideWithValue(_fakeRepository())],
   );
@@ -73,7 +98,7 @@ Future<ProviderContainer> _openGameScreen(WidgetTester tester) async {
   );
   await tester.tap(find.text('Начать игру'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Тестовая'));
+  await tester.tap(find.text(factionName));
   await tester.pumpAndSettle();
   return container;
 }
@@ -190,6 +215,142 @@ void main() {
       find.byType(CheckboxListTile),
     );
     expect(reopened.value, isTrue);
+  });
+
+  testWidgets('модалка: секции «Лавка бронника» нет у фракции без апгрейда', (
+    tester,
+  ) async {
+    await _openGameScreen(tester);
+
+    await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Лавка бронника'), findsNothing);
+  });
+
+  testWidgets(
+    '«Лавка бронника»: применение списывает дерево и меняет силу в бой',
+    (tester) async {
+      final container = await _openGameScreen(tester, factionName: 'Лавка');
+      final notifier = container.read(gameSessionProvider('Лавка').notifier);
+      notifier.setResource('Дерево', 5);
+      notifier.setArmyTotal('ent', 2);
+      notifier.setArmyDeployed('ent', 2);
+      notifier.setArmyTotal('grifon', 1);
+      notifier.setArmyDeployed('grifon', 1);
+      notifier.setArmyTotal('pixi', 1);
+      notifier.setArmyDeployed('pixi', 1);
+      await tester.pump();
+
+      await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Лавка бронника'), findsOneWidget);
+      expect(find.text('Пикси: 1 → 2'), findsOneWidget);
+      expect(find.text('Грифон: 3 → 5'), findsOneWidget);
+      expect(find.text('Энт: 6 → 10'), findsOneWidget);
+      expect(find.text('Эффект не применён'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('battle-upgrade-wood-add')));
+      await tester.tap(find.byKey(const ValueKey('battle-upgrade-wood-add')));
+      await tester.tap(find.text('Энт: 6 → 10'));
+      await tester.tap(find.text('Грифон: 3 → 5'));
+      await tester.pump();
+      await tester.tap(find.text('Применить эффект'));
+      await tester.pumpAndSettle();
+
+      final session = container.read(gameSessionProvider('Лавка'));
+      expect(session.resource('Дерево'), 3);
+      expect(session.battleUpgradeActive, isTrue);
+      expect(session.battleUpgradePaidWood, 2);
+      expect(session.battleUpgradeSelectedUnits, ['grifon', 'ent']);
+      expect(session.deployedArmyStrength, 26);
+      expect(
+        find.text('Эффект применён: оплачено 2 Дерево'),
+        findsOneWidget,
+      );
+
+      // Живой пересчёт: сила в бой видна и за модалкой, и в секции.
+      expect(find.text('Сила в бой: 26'), findsWidgets);
+
+      // Закрытие и повторное открытие показывают применённый эффект.
+      await tester.tapAt(const Offset(600, 30));
+      await tester.pumpAndSettle();
+      expect(find.text('Сила в бой: 26'), findsOneWidget);
+
+      await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Эффект применён: оплачено 2 Дерево'),
+        findsOneWidget,
+      );
+
+      // Новый раунд сбрасывает эффект без возврата дерева.
+      await tester.tapAt(const Offset(600, 30));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Следующий раунд'));
+      await tester.pump();
+
+      final afterRound = container.read(gameSessionProvider('Лавка'));
+      expect(afterRound.battleUpgradeActive, isFalse);
+      expect(afterRound.battleUpgradeSelectedUnits, isEmpty);
+      expect(afterRound.resource('Дерево'), 3);
+      expect(find.text('Сила в бой: 16'), findsOneWidget);
+    },
+  );
+
+  testWidgets('«Лавка бронника»: юниты вне «в бой» недоступны для выбора', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester, factionName: 'Лавка');
+    final notifier = container.read(gameSessionProvider('Лавка').notifier);
+    notifier.setResource('Дерево', 3);
+    notifier.setArmyTotal('ent', 1);
+    notifier.setArmyDeployed('ent', 1);
+    await tester.pump();
+
+    await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
+    await tester.pumpAndSettle();
+
+    final pixiTile = tester.widget<CheckboxListTile>(
+      find.ancestor(
+        of: find.text('Пикси: 1 → 2'),
+        matching: find.byType(CheckboxListTile),
+      ),
+    );
+    expect(pixiTile.onChanged, isNull);
+
+    await tester.tap(find.text('Энт: 6 → 10'));
+    await tester.pump();
+    expect(find.text('Применить эффект'), findsOneWidget);
+  });
+
+  testWidgets('«Лавка бронника»: лимит ограничивает выбор юнитов', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester, factionName: 'Лавка');
+    final notifier = container.read(gameSessionProvider('Лавка').notifier);
+    notifier.setResource('Дерево', 3);
+    for (final unitId in ['ent', 'grifon', 'pixi']) {
+      notifier.setArmyTotal(unitId, 1);
+      notifier.setArmyDeployed(unitId, 1);
+    }
+    await tester.pump();
+
+    await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Энт: 6 → 10'));
+    await tester.tap(find.text('Грифон: 3 → 5'));
+    await tester.pump();
+
+    final pixiTile = tester.widget<CheckboxListTile>(
+      find.ancestor(
+        of: find.text('Пикси: 1 → 2'),
+        matching: find.byType(CheckboxListTile),
+      ),
+    );
+    expect(pixiTile.onChanged, isNull);
   });
 
   testWidgets('выход — только двойным «назад»', (tester) async {

@@ -45,6 +45,40 @@ Faction _nagaFaction() {
   );
 }
 
+Faction _elfFaction() {
+  return const Faction(
+    name: 'Эльфы',
+    gamePart: 1,
+    color: '#732EB4',
+    backgroundPath: 'assets/faction_background/elfs_low.PNG',
+    resources: ['Дерево', 'Железо', 'Золото'],
+    units: [
+      Unit(id: 'pixi', name: 'Пикси', basePower: 1),
+      Unit(id: 'grifon', name: 'Грифон', basePower: 3),
+      Unit(id: 'ent', name: 'Энт', basePower: 6),
+    ],
+    battleUpgrade: BattleUpgrade(
+      resource: 'Дерево',
+      limit: 2,
+      powers: {'pixi': 2, 'grifon': 5, 'ent': 10},
+    ),
+  );
+}
+
+/// Эльфы с «Лавкой бронника» и заявленной «в бой» армией из примера правил:
+/// 2 энта, 1 грифон, 1 пикси.
+GameSession _elfSession() {
+  final session = GameSession(faction: _elfFaction());
+  session.setResource('Дерево', 5);
+  session.setArmyTotal('ent', 2);
+  session.setArmyDeployed('ent', 2);
+  session.setArmyTotal('grifon', 1);
+  session.setArmyDeployed('grifon', 1);
+  session.setArmyTotal('pixi', 1);
+  session.setArmyDeployed('pixi', 1);
+  return session;
+}
+
 void main() {
   group('создание сессии', () {
     test('ресурсы и армия инициализируются нулями по данным фракции', () {
@@ -289,6 +323,185 @@ void main() {
       final session = GameSession(faction: faction);
 
       expect(() => session.setToggleEnabled(0, true), throwsStateError);
+    });
+  });
+
+  group('«Лавка бронника»: апгрейд войск эльфов', () {
+    test('без эффекта сила в бою равна обычной силе с модификаторами', () {
+      final session = _elfSession();
+
+      expect(session.battleUpgradeActive, isFalse);
+      expect(session.unitBattlePower('ent'), 6);
+      expect(session.unitBattlePower('grifon'), 3);
+      expect(session.unitBattlePower('pixi'), 1);
+      expect(session.unitBattlePower('ent'), session.unitPower('ent'));
+    });
+
+    test('применение эффекта списывает дерево и фиксирует выбор', () {
+      final session = _elfSession();
+
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);
+
+      expect(session.resource('Дерево'), 3);
+      expect(session.battleUpgradeActive, isTrue);
+      expect(session.battleUpgradePaidWood, 2);
+      expect(session.battleUpgradeSelectedUnits, ['grifon', 'ent']);
+      expect(session.isBattleUpgraded('ent'), isTrue);
+      expect(session.isBattleUpgraded('pixi'), isFalse);
+    });
+
+    test('выбранные юниты в бою получают целевую силу, остальные — обычную', () {
+      final session = _elfSession();
+
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);
+
+      expect(session.unitBattlePower('ent'), 10);
+      expect(session.unitBattlePower('grifon'), 5);
+      expect(session.unitBattlePower('pixi'), 1);
+    });
+
+    test('сила «в бой» учитывает апгрейды, общая сила — нет (пример: 10 + 6 + 5 + 1 = 22)', () {
+      final session = _elfSession();
+
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);
+
+      expect(session.deployedArmyStrength, 26);
+      expect(session.totalArmyStrength, 16);
+    });
+
+    test('выбор не включает юнитов вне «в бой»', () {
+      final session = _elfSession();
+      session.setArmyDeployed('pixi', 0);
+
+      expect(
+        () => session.applyBattleUpgrade(
+          wood: 2,
+          unitIds: const ['ent', 'pixi'],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('выбор ограничен лимитом из данных', () {
+      final session = _elfSession();
+
+      expect(
+        () => session.applyBattleUpgrade(
+          wood: 2,
+          unitIds: const ['ent', 'grifon', 'pixi'],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('дубликат юнита в выборе → ArgumentError', () {
+      final session = _elfSession();
+
+      expect(
+        () => session.applyBattleUpgrade(
+          wood: 2,
+          unitIds: const ['ent', 'ent'],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('нельзя применить больше дерева, чем на складе', () {
+      final session = _elfSession();
+
+      expect(
+        () => session.applyBattleUpgrade(wood: 6, unitIds: const ['ent']),
+        throwsArgumentError,
+      );
+    });
+
+    test('повторное применение добирает или возвращает разницу дерева', () {
+      final session = _elfSession();
+
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent']);
+      expect(session.resource('Дерево'), 3);
+
+      session.applyBattleUpgrade(wood: 3, unitIds: const ['ent', 'grifon']);
+      expect(session.resource('Дерево'), 2);
+      expect(session.battleUpgradePaidWood, 3);
+
+      session.applyBattleUpgrade(wood: 1, unitIds: const ['grifon']);
+      expect(session.resource('Дерево'), 4);
+      expect(session.battleUpgradeSelectedUnits, ['grifon']);
+    });
+
+    test('новый раунд сбрасывает апгрейды без возврата дерева', () {
+      final session = _elfSession();
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);
+
+      session.advanceRound();
+
+      expect(session.round, 2);
+      expect(session.battleUpgradeActive, isFalse);
+      expect(session.battleUpgradePaidWood, 0);
+      expect(session.battleUpgradeSelectedUnits, isEmpty);
+      expect(session.unitBattlePower('ent'), 6);
+      expect(session.deployedArmyStrength, 16);
+      expect(session.resource('Дерево'), 3);
+    });
+
+    test('уменьшение «в бой» до нуля убирает юнит из выбора', () {
+      final session = _elfSession();
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);
+
+      session.setArmyDeployed('ent', 0);
+
+      expect(session.battleUpgradeSelectedUnits, ['grifon']);
+      expect(session.unitBattlePower('ent'), 6);
+    });
+
+    test('апгрейд перекрывает toggle-модификатор юнита', () {
+      final faction = const Faction(
+        name: 'Эльфы',
+        gamePart: 1,
+        color: '#732EB4',
+        backgroundPath: 'assets/faction_background/elfs_low.PNG',
+        resources: ['Дерево'],
+        units: [Unit(id: 'ent', name: 'Энт', basePower: 6)],
+        modifiers: [ToggleModifier(unitId: 'ent', bonusPower: 8)],
+        battleUpgrade: BattleUpgrade(
+          resource: 'Дерево',
+          limit: 1,
+          powers: {'ent': 10},
+        ),
+      );
+      final session = GameSession(faction: faction);
+      session.setResource('Дерево', 2);
+      session.setArmyTotal('ent', 1);
+      session.setArmyDeployed('ent', 1);
+
+      expect(session.unitBattlePower('ent'), 6);
+      session.setToggleEnabled(0, true);
+      expect(session.unitPower('ent'), 8);
+      expect(session.unitBattlePower('ent'), 8);
+
+      session.applyBattleUpgrade(wood: 2, unitIds: const ['ent']);
+
+      expect(session.unitBattlePower('ent'), 10);
+      expect(session.unitPower('ent'), 8);
+    });
+
+    test('фракция без battleUpgrade: применение → StateError', () {
+      final session = GameSession(faction: _faction());
+
+      expect(
+        () => session.applyBattleUpgrade(wood: 2, unitIds: const ['soldier']),
+        throwsStateError,
+      );
+    });
+
+    test('неизвестный юнит в выборе → ArgumentError', () {
+      final session = _elfSession();
+
+      expect(
+        () => session.applyBattleUpgrade(wood: 2, unitIds: const ['dragon']),
+        throwsArgumentError,
+      );
     });
   });
 

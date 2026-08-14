@@ -54,7 +54,7 @@ final class FactionDuplicateUnitIdException extends FactionParseException {
 
 final class FactionUnknownUnitException extends FactionParseException {
   const FactionUnknownUnitException(this.unitId)
-      : super('модификатор ссылается на неизвестного юнита "$unitId"');
+      : super('ссылается на неизвестного юнита "$unitId"');
 
   final String unitId;
 }
@@ -80,6 +80,7 @@ class FactionParser {
     'units',
     'modifiers',
     'armyPower',
+    'battleUpgrade',
   };
   static const _unitFields = {'id', 'name', 'power'};
   static const _modifierFields = {
@@ -89,6 +90,7 @@ class FactionParser {
     'step',
     'maxCount',
   };
+  static const _battleUpgradeFields = {'resource', 'limit', 'powers'};
 
   Faction parse(String source) {
     final Object? decoded;
@@ -116,6 +118,7 @@ class FactionParser {
     final units = _readUnits(json);
     final modifiers = _readModifiers(json, units);
     final armyPower = _readArmyPower(json);
+    final battleUpgrade = _readBattleUpgrade(json, units, resources);
 
     return Faction(
       name: name,
@@ -126,6 +129,7 @@ class FactionParser {
       units: units,
       modifiers: modifiers,
       armyPowerFormula: armyPower,
+      battleUpgrade: battleUpgrade,
     );
   }
 
@@ -322,6 +326,77 @@ class FactionParser {
           value: value,
         );
     }
+  }
+
+  /// Секция «Лавка бронника»: цена-ресурс из ресурсов фракции,
+  /// лимит ≥ 1, целевые силы только у существующих юнитов.
+  BattleUpgrade? _readBattleUpgrade(
+    Map<String, dynamic> json,
+    List<Unit> units,
+    List<String> resources,
+  ) {
+    final raw = json['battleUpgrade'];
+    if (raw == null) {
+      return null;
+    }
+    if (raw is! Map<String, dynamic>) {
+      throw FactionInvalidValueException(
+        field: 'battleUpgrade',
+        path: 'фракция',
+        reason: 'должен быть объектом',
+        value: raw,
+      );
+    }
+    const path = 'фракция.battleUpgrade';
+    _rejectUnknownFields(raw, _battleUpgradeFields, path);
+
+    final resource = _readNonEmptyString(raw, 'resource', path);
+    if (!resources.contains(resource)) {
+      throw FactionInvalidValueException(
+        field: 'resource',
+        path: path,
+        reason: 'должен быть одним из ресурсов фракции',
+        value: resource,
+      );
+    }
+
+    final limit = _readInt(raw, 'limit', path);
+    if (limit < 1) {
+      throw FactionInvalidValueException(
+        field: 'limit',
+        path: path,
+        reason: 'должно быть целым числом не меньше 1',
+        value: limit,
+      );
+    }
+
+    final rawPowers = raw['powers'];
+    if (rawPowers is! Map<String, dynamic> || rawPowers.isEmpty) {
+      throw FactionInvalidValueException(
+        field: 'powers',
+        path: path,
+        reason: 'должен быть объектом «id юнита → целевая сила»',
+        value: rawPowers,
+      );
+    }
+    final unitIds = {for (final unit in units) unit.id};
+    final powers = <String, int>{};
+    rawPowers.forEach((unitId, power) {
+      if (!unitIds.contains(unitId)) {
+        throw FactionUnknownUnitException(unitId);
+      }
+      if (power is! int || power < 0) {
+        throw FactionInvalidValueException(
+          field: unitId,
+          path: '$path.powers',
+          reason: 'целевая сила должна быть целым числом не меньше 0',
+          value: power,
+        );
+      }
+      powers[unitId] = power;
+    });
+
+    return BattleUpgrade(resource: resource, limit: limit, powers: powers);
   }
 
   /// Шаг счётчика — произвольное целое: положительный усиливает силу

@@ -8,5 +8,14 @@
     {"id": "pixi", "name": "Пикси", "power": 1},
     {"id": "grifon", "name": "Грифон", "power": 3},
     {"id": "ent", "name": "Энт", "power": 6}
-  ]
+  ],
+  "battleUpgrade": {
+    "resource": "Дерево",
+    "limit": 2,
+    "powers": {
+      "pixi": 2,
+      "grifon": 5,
+      "ent": 10
+    }
+  }
 }

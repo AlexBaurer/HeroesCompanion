@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:heroescompanion/domain/session.dart';
 import 'package:heroescompanion/domain/strength_modifier.dart';
 
 import '../../data/game_session_provider.dart';
+import 'battle_upgrade_section.dart';
 
 /// Модальное окно модификаторов силы: читает и меняет модификаторы прямо
 /// в сессии (единый источник истины) — закрытие окна ничего не теряет,
-/// повторное открытие показывает то же состояние.
+/// повторное открытие показывает то же состояние. Для фракций с зданием
+/// «Лавка бронника» (эльфы) добавляется секция апгрейда войск.
 class StrengthModifiersSheet extends ConsumerWidget {
   const StrengthModifiersSheet({super.key, required this.factionName});
 
@@ -34,70 +37,82 @@ class StrengthModifiersSheet extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
-              if (modifiers.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: Text('У фракции нет модификаторов')),
-                )
-              else
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: modifiers.length,
-                    itemBuilder: (context, index) {
-                      final modifier = modifiers[index];
-                      final unit = session.faction.unitById(modifier.unitId);
-                      return switch (modifier) {
-                        ToggleModifier() => CheckboxListTile(
-                          title: Text(
-                            'Увеличить силу юнита (${unit?.name}): '
-                            '${unit?.basePower} → ${modifier.bonusPower}',
-                          ),
-                          value: modifier.isEnabled,
-                          onChanged: (value) =>
-                              notifier.setToggleEnabled(index, value ?? false),
+              Expanded(
+                child: ListView(
+                  children: [
+                    if (modifiers.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text('У фракции нет модификаторов'),
                         ),
-                        CounterModifier() => ListTile(
-                          title: Text('Увеличить силу юнита (${unit?.name})'),
-                          subtitle: Text(
-                            'Базовая сила: ${unit?.basePower}, '
-                            'текущая: ${modifier.applyTo(unit?.basePower ?? 0)}',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: modifier.count <= 0
-                                    ? null
-                                    : () => notifier.setCounterCount(
-                                        index,
-                                        modifier.count - 1,
-                                      ),
-                              ),
-                              Text(
-                                '${modifier.count}',
-                                style: const TextStyle(fontSize: 22),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: modifier.count >= modifier.maxCount
-                                    ? null
-                                    : () => notifier.setCounterCount(
-                                        index,
-                                        modifier.count + 1,
-                                      ),
-                              ),
-                            ],
-                          ),
+                      )
+                    else
+                      for (var index = 0; index < modifiers.length; index++)
+                        _modifierTile(
+                          context,
+                          session,
+                          notifier,
+                          modifiers[index],
+                          index,
                         ),
-                      };
-                    },
-                  ),
+                    if (session.faction.battleUpgrade != null)
+                      BattleUpgradeSection(factionName: factionName),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _modifierTile(
+    BuildContext context,
+    GameSession session,
+    GameSessionNotifier notifier,
+    StrengthModifier modifier,
+    int index,
+  ) {
+    final unit = session.faction.unitById(modifier.unitId);
+    return switch (modifier) {
+      ToggleModifier() => CheckboxListTile(
+        title: Text(
+          'Увеличить силу юнита (${unit?.name}): '
+          '${unit?.basePower} → ${modifier.bonusPower}',
+        ),
+        value: modifier.isEnabled,
+        onChanged: (value) => notifier.setToggleEnabled(index, value ?? false),
+      ),
+      CounterModifier() => ListTile(
+        title: Text('Увеличить силу юнита (${unit?.name})'),
+        subtitle: Text(
+          'Базовая сила: ${unit?.basePower}, '
+          'текущая: ${modifier.applyTo(unit?.basePower ?? 0)}',
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.remove),
+              onPressed: modifier.count <= 0
+                  ? null
+                  : () => notifier.setCounterCount(index, modifier.count - 1),
+            ),
+            Text(
+              '${modifier.count}',
+              style: const TextStyle(fontSize: 22),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: modifier.count >= modifier.maxCount
+                  ? null
+                  : () => notifier.setCounterCount(index, modifier.count + 1),
+            ),
+          ],
+        ),
+      ),
+    };
   }
 }

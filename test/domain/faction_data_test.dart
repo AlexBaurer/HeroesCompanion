@@ -159,6 +159,31 @@ void main() {
       expect(faction.armyPowerFormula, ArmyPowerFormula.nSquared);
     });
 
+    test('Эльфы: «Лавка бронника» — дерево, лимит 2, целевые силы 1→2, 3→5, 6→10', () {
+      final faction = load('elfs.json');
+      final upgrade = faction.battleUpgrade;
+      expect(upgrade, isNotNull);
+      expect(upgrade!.resource, 'Дерево');
+      expect(faction.resources, contains(upgrade.resource));
+      expect(upgrade.limit, 2);
+      expect(upgrade.powers, const {'pixi': 2, 'grifon': 5, 'ent': 10});
+      for (final unitId in upgrade.powers.keys) {
+        expect(faction.unitById(unitId), isNotNull,
+            reason: 'целевая сила юнита $unitId');
+      }
+    });
+
+    test('battleUpgrade есть только у эльфов', () {
+      for (final file in _factionFiles) {
+        final faction = load(file);
+        if (file == 'elfs.json') {
+          expect(faction.battleUpgrade, isNotNull, reason: file);
+        } else {
+          expect(faction.battleUpgrade, isNull, reason: file);
+        }
+      }
+    });
+
     test('Люди: переключатели 2→3, 3→4, 5→7', () {
       final faction = load('humans.json');
       final bonuses = faction.modifiers

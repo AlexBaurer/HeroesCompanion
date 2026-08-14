@@ -52,6 +52,21 @@ class GameSessionNotifier extends FamilyNotifier<GameSession, String> {
     ref.notifyListeners();
   }
 
+  /// Применяет эффект «Лавки бронника»: списывает [wood] дерева
+  /// и фиксирует выбор юнитов [unitIds].
+  void applyBattleUpgrade({
+    required int wood,
+    required List<String> unitIds,
+  }) {
+    state.applyBattleUpgrade(wood: wood, unitIds: unitIds);
+    ref.notifyListeners();
+  }
+
+  void resetBattleUpgrade() {
+    state.resetBattleUpgrade();
+    ref.notifyListeners();
+  }
+
   /// Переходит к следующему раунду; возвращает true, если партия завершена.
   bool advanceRound() {
     final finished = state.advanceRound();
