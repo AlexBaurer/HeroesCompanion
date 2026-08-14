@@ -17,16 +17,16 @@ class FactionChooseScreen extends ConsumerWidget {
   static const tileHeight = 120.0;
 
   /// Размер имени фракции на плитке (20sp × 2 по запросу пользователя).
-  static const tileNameFontSize = 40.0;
+  static const tileNameFontSize = 50.0;
 
   /// Сдвиг фоновой картинки плитки по вертикали в пикселях (положительный —
   /// вниз, отрицательный — вверх). Картинка-подложка рисуется с запасом по
   /// высоте, поэтому сдвиг не открывает края плитки.
-  static const backgroundShiftY = 0.0;
+  static const backgroundShiftY = 60.0;
 
   /// Запас высоты фоновой картинки выше и ниже плитки, чтобы сдвиг
   /// [backgroundShiftY] не открывал край плитки.
-  static const _backgroundOverflow = 60.0;
+  static const _backgroundOverflow = 80.0;
 
   /// Обводка краёв букв: у TextStyle нет нативного stroke, поэтому
   /// рисуются 4 тени по сторонам (тикет 12).
