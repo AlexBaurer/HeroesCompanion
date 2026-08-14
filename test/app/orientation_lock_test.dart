@@ -29,9 +29,10 @@ void main() {
         (c) => c.method == 'SystemChrome.setPreferredOrientations',
       );
       expect(call, hasLength(1));
-      final orientations =
-          (call.first.arguments as Map<Object?, Object?>)['orientations'];
-      expect(orientations, ['DeviceOrientation.portraitUp']);
+      // Аргумент метода — список строк вида `DeviceOrientation.portraitUp`
+      // (в `SystemChrome.setPreferredOrientations` значения приводятся
+      // к строкам через `_stringify`).
+      expect(call.first.arguments, ['DeviceOrientation.portraitUp']);
     });
   });
 }
