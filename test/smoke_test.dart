@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,7 +38,7 @@ void main() {
     await tester.tap(find.text('Начать игру'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Выбери фракцию'), findsOneWidget);
+    expect(find.byType(AppBar), findsNothing);
     for (final name in factionNames) {
       expect(find.text(name), findsOneWidget);
     }

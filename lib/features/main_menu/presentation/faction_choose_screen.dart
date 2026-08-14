@@ -9,7 +9,9 @@ import '../../factions/data/faction_providers.dart';
 /// Экран выбора фракции: все 18 фракций одним бесшовным списком на всю
 /// ширину экрана. Плитка — фон-изображение фракции из данных
 /// ([Faction.backgroundPath]); без неё — сплошной цвет фракции. Имя —
-/// слева по центру с обводкой краёв букв. Иммерсивный AppBar.
+/// слева по центру с обводкой краёв букв. Верхнего бара нет (тикет 17):
+/// навигация назад — системная, плитки начинаются от верха безопасной
+/// зоны статус-бара.
 class FactionChooseScreen extends ConsumerWidget {
   const FactionChooseScreen({super.key});
 
@@ -48,8 +50,6 @@ class FactionChooseScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog = ref.watch(factionCatalogProvider);
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: const _ImmersiveAppBar(),
       body: catalog.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _LoadError(
@@ -57,36 +57,6 @@ class FactionChooseScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(factionCatalogProvider),
         ),
         data: (data) => _FactionList(factions: data.factions),
-      ),
-    );
-  }
-}
-
-/// Иммерсивный AppBar: полупрозрачная подложка, заголовок с той же
-/// обводкой, что и имена на плитках, «назад» — на полупрозрачном круге.
-class _ImmersiveAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _ImmersiveAppBar();
-
-  static const _scrim = Color(0x59000000);
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: _scrim,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leading: const Center(
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: _scrim, shape: BoxShape.circle),
-          child: BackButton(color: Colors.white),
-        ),
-      ),
-      title: Text(
-        'Выбери фракцию',
-        style: FactionChooseScreen.strokedTextStyle(fontSize: 18),
       ),
     );
   }
@@ -128,7 +98,8 @@ class _LoadError extends StatelessWidget {
 }
 
 /// Один скролл, все 18 фракций подряд в порядке каталога (части 1→3),
-/// без заголовков секций, отступов и разделителей.
+/// без заголовков секций, отступов и разделителей. Плитки начинаются
+/// от верха безопасной зоны (тикет 17: верхнего бара нет).
 class _FactionList extends StatelessWidget {
   const _FactionList({required this.factions});
 
@@ -136,14 +107,13 @@ class _FactionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      // Иммерсивный AppBar перекрывает верх экрана: список начинается
-      // под ним, но прокручивается под полупрозрачную подложку.
-      padding: EdgeInsets.only(
-        top: MediaQuery.paddingOf(context).top + kToolbarHeight,
+    return SafeArea(
+      top: true,
+      child: ListView.builder(
+        itemCount: factions.length,
+        itemBuilder: (context, index) =>
+            _FactionTile(faction: factions[index]),
       ),
-      itemCount: factions.length,
-      itemBuilder: (context, index) => _FactionTile(faction: factions[index]),
     );
   }
 }

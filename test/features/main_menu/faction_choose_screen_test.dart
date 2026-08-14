@@ -65,6 +65,22 @@ void main() {
     expect(nextTopLeft.dy - topLeft.dy, FactionChooseScreen.tileHeight);
   });
 
+  testWidgets('нет верхнего бара: AppBar, «назад» и заголовок убраны; плитки от верха', (
+    tester,
+  ) async {
+    await _openFactionChoose(tester);
+
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.byType(BackButton), findsNothing);
+    expect(find.text('Выбери фракцию'), findsNothing);
+
+    final firstTile = find.ancestor(
+      of: find.text('Люди'),
+      matching: find.byType(InkWell),
+    );
+    expect(tester.getTopLeft(firstTile).dy, 0);
+  });
+
   testWidgets('без ассета фона — сплошной цвет фракции и имя плитки', (
     tester,
   ) async {

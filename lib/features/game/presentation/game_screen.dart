@@ -14,7 +14,9 @@ import 'widgets/resource_counter_wheel.dart';
 import 'widgets/strength_modifiers_sheet.dart';
 
 /// Экран партии: фон фракции, панель армии, ресурсы, порядок действий,
-/// модификаторы силы и раунд (1–16). Выход — только двойным «назад».
+/// модификаторы силы и раунд (1–16). Верхнего бара нет (тикет 17): имя
+/// фракции — в теле экрана над строкой раунда. Выход — только двойным
+/// «назад».
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key, required this.factionName});
 
@@ -56,7 +58,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       canPop: false,
       onPopInvokedWithResult: _onPopInvokedWithResult,
       child: Scaffold(
-        appBar: AppBar(title: Text('Партия: ${widget.factionName}')),
         body: catalog.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stackTrace) => _LoadError(
@@ -174,12 +175,24 @@ class _GameView extends ConsumerWidget {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Текущий раунд: ${session.round}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Партия: $factionName',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          'Текущий раунд: ${session.round}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(
                       width: 200,

@@ -125,6 +125,7 @@ void main() {
   ) async {
     await _openGameScreen(tester);
 
+    expect(find.byType(AppBar), findsNothing);
     expect(find.text('Партия: Тестовая'), findsOneWidget);
     expect(find.text('Текущий раунд: 1'), findsOneWidget);
     expect(find.text('Сила армии: 0'), findsOneWidget);
@@ -460,7 +461,7 @@ void main() {
     await _simulateSystemBack();
     await tester.pumpAndSettle();
 
-    expect(find.text('Выбери фракцию'), findsOneWidget);
+    expect(find.text('Люди'), findsOneWidget);
     expect(find.text('Текущий раунд: 1'), findsNothing);
   });
 }
