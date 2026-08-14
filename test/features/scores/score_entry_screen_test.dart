@@ -87,7 +87,8 @@ Future<ProviderContainer> _openScoreScreen(
 /// Записи, сохранённые экраном, через публичный API хранилища.
 Future<List<GameRecord>> _savedRecords(ProviderContainer container) async {
   final storage = await container.read(gameRecordStorageProvider.future);
-  return storage.loadAll();
+  final entries = await storage.loadAll();
+  return [for (final entry in entries) entry.record];
 }
 
 /// Текст ячейки подсчёта по ключу ячейки (поле ввода внутри).

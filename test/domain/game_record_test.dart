@@ -42,6 +42,28 @@ void main() {
     });
   });
 
+  group('totalScore: сумма очков игроков', () {
+    test('суммирует очки всех игроков', () {
+      final record = _record(
+        players: [_player('Иван', 42, 'Майя'), _player('Пётр', 35, 'Наги')],
+      );
+
+      expect(record.totalScore, 77);
+    });
+
+    test('один игрок — его очки', () {
+      expect(_record().totalScore, 42);
+    });
+
+    test('нулевые и отрицательные очки учитываются', () {
+      final record = _record(
+        players: [_player('Аня', 0, 'Майя'), _player('Боря', -3, 'Наги')],
+      );
+
+      expect(record.totalScore, -3);
+    });
+  });
+
   group('round-trip: запись → JSON → запись', () {
     test('одна запись с несколькими игроками идентична', () {
       final record = _record(

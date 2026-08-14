@@ -72,7 +72,7 @@ void main() {
       final loaded = await storage.loadAll();
 
       expect(loaded, hasLength(1));
-      expect(loaded.single.toJson(), record.toJson());
+      expect(loaded.single.record.toJson(), record.toJson());
     });
 
     test('сохраняет порядок записей', () async {
@@ -81,24 +81,100 @@ void main() {
 
       final loaded = await storage.loadAll();
 
-      expect(loaded.map((record) => record.dateTime).toList(), [
-        DateTime(2026, 8, 12, 18, 30),
-        DateTime(2026, 7, 1),
-      ]);
+      expect(
+        loaded.map((entry) => entry.record.dateTime).toList(),
+        [DateTime(2026, 8, 12, 18, 30), DateTime(2026, 7, 1)],
+      );
+    });
+
+    test('индекс записи — её позиция среди читаемых записей', () async {
+      await storage.add(_record());
+      await storage.add(_record(dateTime: DateTime(2026, 7, 1)));
+
+      final loaded = await storage.loadAll();
+
+      expect(loaded.map((entry) => entry.index).toList(), [0, 1]);
     });
 
     test('отсутствующий ключ — пустая история', () async {
       expect(await storage.loadAll(), isEmpty);
     });
 
-    test('битые строки пропускаются, валидные читаются', () async {
+    test('битые строки пропускаются, индексы — по читаемым записям', () async {
       await storage.add(_record());
-      prefs.strings[GameRecordStorage.recordsKey]!.insert(0, 'не json');
+      await storage.add(_record(dateTime: DateTime(2026, 7, 1)));
+      prefs.strings[GameRecordStorage.recordsKey]!.insert(1, 'не json');
 
       final loaded = await storage.loadAll();
 
-      expect(loaded, hasLength(1));
-      expect(loaded.single.playerScores.single.playerName, 'Иван');
+      expect(loaded, hasLength(2));
+      expect(loaded[0].record.playerScores.single.playerName, 'Иван');
+      expect(loaded[0].index, 0);
+      expect(loaded[1].record.dateTime, DateTime(2026, 7, 1));
+      expect(loaded[1].index, 1);
+    });
+  });
+
+  group('removeAt: удаление одной записи', () {
+    test('удаляет запись по индексу из loadAll, остальные сохраняют порядок',
+        () async {
+      await storage.add(_record(dateTime: DateTime(2026, 8, 1)));
+      await storage.add(_record(dateTime: DateTime(2026, 9, 1)));
+      await storage.add(_record(dateTime: DateTime(2026, 7, 1)));
+
+      await storage.removeAt(1);
+
+      final loaded = await storage.loadAll();
+      expect(
+        loaded.map((entry) => entry.record.dateTime).toList(),
+        [DateTime(2026, 8, 1), DateTime(2026, 7, 1)],
+      );
+      // Индексы оставшихся записей пересчитываются.
+      expect(loaded.map((entry) => entry.index).toList(), [0, 1]);
+    });
+
+    test('удаляет первую и последнюю запись', () async {
+      await storage.add(_record(dateTime: DateTime(2026, 8, 1)));
+      await storage.add(_record(dateTime: DateTime(2026, 9, 1)));
+
+      await storage.removeAt(0);
+
+      final loaded = await storage.loadAll();
+      expect(loaded.single.record.dateTime, DateTime(2026, 9, 1));
+    });
+
+    test('удаление единственной записи делает историю пустой', () async {
+      await storage.add(_record());
+
+      await storage.removeAt(0);
+
+      expect(await storage.loadAll(), isEmpty);
+    });
+
+    test('индекс считается по читаемым записям: битые строки сохраняются',
+        () async {
+      await storage.add(_record(dateTime: DateTime(2026, 8, 1)));
+      await storage.add(_record(dateTime: DateTime(2026, 9, 1)));
+      prefs.strings[GameRecordStorage.recordsKey]!.insert(1, 'не json');
+
+      await storage.removeAt(1);
+
+      final loaded = await storage.loadAll();
+      expect(loaded.single.record.dateTime, DateTime(2026, 8, 1));
+      // Битая строка не тронута и продолжает пропускаться при чтении.
+      expect(prefs.strings[GameRecordStorage.recordsKey], hasLength(2));
+    });
+
+    test('индекс вне диапазона → RangeError', () async {
+      await storage.add(_record());
+
+      await expectLater(storage.removeAt(1), throwsRangeError);
+      await expectLater(storage.removeAt(-1), throwsRangeError);
+      expect(await storage.loadAll(), hasLength(1));
+    });
+
+    test('пустое хранилище → RangeError', () async {
+      await expectLater(storage.removeAt(0), throwsRangeError);
     });
   });
 
@@ -120,7 +196,7 @@ void main() {
 
       final loaded = await storage.loadAll();
       expect(loaded, hasLength(1));
-      expect(loaded.single.dateTime, DateTime(2026, 7, 1));
+      expect(loaded.single.record.dateTime, DateTime(2026, 7, 1));
     });
   });
 }

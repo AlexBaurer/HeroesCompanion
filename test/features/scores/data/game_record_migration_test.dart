@@ -29,7 +29,7 @@ void main() {
 
       final records = await GameRecordStorage(preferences: prefs).loadAll();
       expect(records, hasLength(1));
-      expect(records.single.toJson(), _v1Record().toJson());
+      expect(records.single.record.toJson(), _v1Record().toJson());
     });
 
     test('после миграции ставится флаг «миграция выполнена»', () async {
@@ -55,7 +55,7 @@ void main() {
 
       final records = await GameRecordStorage(preferences: prefs).loadAll();
       expect(records, hasLength(1));
-      expect(records.single.toJson(), _v1Record().toJson());
+      expect(records.single.record.toJson(), _v1Record().toJson());
     });
 
     test('отсутствие данных v1 не ломает первый запуск', () async {
@@ -92,8 +92,8 @@ void main() {
       final after = await storage.loadAll();
       expect(after, hasLength(2));
       expect(
-        after.map((record) => record.toJson()).toList(),
-        before.map((record) => record.toJson()).toList(),
+        after.map((entry) => entry.record.toJson()).toList(),
+        before.map((entry) => entry.record.toJson()).toList(),
       );
     });
 

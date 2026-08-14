@@ -107,6 +107,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byIcon(Icons.delete), findsNothing);
+    expect(find.byIcon(Icons.sort), findsNothing);
   });
 
   testWidgets('записи читаются и сортируются по дате, новые сверху', (
@@ -154,6 +155,136 @@ void main() {
     expect(find.text('Пётр (Наги)'), findsOneWidget);
     expect(find.text('42'), findsOneWidget);
     expect(find.text('35'), findsOneWidget);
+  });
+
+  testWidgets('карточка показывает итог и число игроков', (tester) async {
+    final storage = GameRecordStorage(preferences: FakePreferences());
+    await storage.add(
+      _record(
+        dateTime: DateTime(2026, 8, 1, 18, 30),
+        players: [_player('Иван', 42, 'Майя'), _player('Пётр', 35, 'Наги')],
+      ),
+    );
+    await _openHistoryScreen(tester, storage: storage);
+
+    expect(find.text('Игра от 01.08.2026 18:30'), findsOneWidget);
+    expect(find.text('Итог: 77'), findsOneWidget);
+    expect(find.text('2 игрока'), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+  });
+
+  testWidgets('удаление записи по кнопке на карточке с подтверждением', (
+    tester,
+  ) async {
+    final prefs = FakePreferences();
+    final storage = GameRecordStorage(preferences: prefs);
+    await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
+    await storage.add(_record(dateTime: DateTime(2026, 9, 1, 18, 30)));
+    await _openHistoryScreen(tester, storage: storage);
+    expect(find.byIcon(Icons.delete_outline), findsNWidgets(2));
+
+    // Удаляем первую карточку (самая свежая запись).
+    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Удалить запись'), findsOneWidget);
+    expect(
+      find.text('Вы уверены, что хотите удалить запись от 01.09.2026 18:30?'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Удалить'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Запись удалена'), findsOneWidget);
+    expect(find.text('Игра от 01.09.2026 18:30'), findsNothing);
+    expect(find.text('Игра от 01.08.2026 18:30'), findsOneWidget);
+    final loaded = await storage.loadAll();
+    expect(loaded, hasLength(1));
+    expect(loaded.single.record.dateTime, DateTime(2026, 8, 1, 18, 30));
+  });
+
+  testWidgets('отмена диалога удаления не трогает записи', (tester) async {
+    final storage = GameRecordStorage(preferences: FakePreferences());
+    await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
+    await storage.add(_record(dateTime: DateTime(2026, 9, 1, 18, 30)));
+    await _openHistoryScreen(tester, storage: storage);
+
+    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Отмена'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Игра от 01.09.2026 18:30'), findsOneWidget);
+    expect(await storage.loadAll(), hasLength(2));
+  });
+
+  testWidgets('удаление последней записи показывает пустое состояние', (
+    tester,
+  ) async {
+    final storage = GameRecordStorage(preferences: FakePreferences());
+    await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
+    await _openHistoryScreen(tester, storage: storage);
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Удалить'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('История пуста'), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline), findsNothing);
+    expect(find.byIcon(Icons.sort), findsNothing);
+  });
+
+  testWidgets('сортировка: старые сверху по меню', (tester) async {
+    final storage = GameRecordStorage(preferences: FakePreferences());
+    await storage.add(_record(dateTime: DateTime(2026, 8, 1)));
+    await storage.add(_record(dateTime: DateTime(2026, 9, 1)));
+    await _openHistoryScreen(tester, storage: storage);
+    expect(find.text('Игра от 01.09.2026 00:00'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.sort));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('По дате, старые сверху'));
+    await tester.pumpAndSettle();
+
+    final titles = find.textContaining('Игра от');
+    expect(titles, findsNWidgets(2));
+    expect(tester.widget<Text>(titles.at(0)).data, 'Игра от 01.08.2026 00:00');
+    expect(tester.widget<Text>(titles.at(1)).data, 'Игра от 01.09.2026 00:00');
+  });
+
+  testWidgets('сортировка по сумме очков: больше сверху', (tester) async {
+    final storage = GameRecordStorage(preferences: FakePreferences());
+    await storage.add(
+      _record(
+        dateTime: DateTime(2026, 8, 1),
+        players: [_player('Аня', 30, 'Майя')],
+      ),
+    );
+    await storage.add(
+      _record(
+        dateTime: DateTime(2026, 9, 1),
+        players: [_player('Боря', 60, 'Наги')],
+      ),
+    );
+    await storage.add(
+      _record(
+        dateTime: DateTime(2026, 7, 1),
+        players: [_player('Витя', 45, 'Гномы')],
+      ),
+    );
+    await _openHistoryScreen(tester, storage: storage);
+
+    await tester.tap(find.byIcon(Icons.sort));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('По сумме очков, больше сверху'));
+    await tester.pumpAndSettle();
+
+    final titles = find.textContaining('Игра от');
+    expect(titles, findsNWidgets(3));
+    expect(tester.widget<Text>(titles.at(0)).data, 'Игра от 01.09.2026 00:00');
+    expect(tester.widget<Text>(titles.at(1)).data, 'Игра от 01.07.2026 00:00');
+    expect(tester.widget<Text>(titles.at(2)).data, 'Игра от 01.08.2026 00:00');
   });
 
   testWidgets('очистка с подтверждением удаляет записи и показывает пустое', (
