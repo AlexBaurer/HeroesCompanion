@@ -9,9 +9,11 @@ const resourceIconPaths = <String, String>{
   'Ярость': 'assets/fury.PNG',
 };
 
-/// Колёсико-счётчик значений 0–99 (как в v1): прокрутка выбирает число,
-/// [value] — управляемое значение из сессии (внешний кламп отражается
-/// сразу), [onValueChanged] уведомляет об изменениях.
+/// Колёсико-счётчик значений 0–[maxValue] (по умолчанию 99, как в v1):
+/// прокрутка выбирает число, [value] — управляемое значение из сессии
+/// (внешний кламп отражается сразу), [onValueChanged] уведомляет
+/// об изменениях. Значения выше [maxValue] в колёсике отсутствуют —
+/// прокрутить за границу нельзя.
 class ResourceCounterWheel extends StatefulWidget {
   const ResourceCounterWheel({
     super.key,
@@ -20,6 +22,7 @@ class ResourceCounterWheel extends StatefulWidget {
     this.iconPath,
     this.heightOfWheel = 90,
     this.fontSize = 50,
+    this.maxValue = 99,
   });
 
   final int value;
@@ -30,18 +33,20 @@ class ResourceCounterWheel extends StatefulWidget {
   final double heightOfWheel;
   final double fontSize;
 
+  /// Верхняя граница выбираемых значений; колёсико содержит ровно
+  /// значения 0..[maxValue].
+  final int maxValue;
+
   @override
   State<ResourceCounterWheel> createState() => _ResourceCounterWheelState();
 }
 
 class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
-  static const _maxValue = 99;
-
   late final FixedExtentScrollController _controller;
 
-  int _indexFor(int value) => _maxValue - value;
+  int _indexFor(int value) => widget.maxValue - value;
 
-  int _valueAt(int index) => _maxValue - index;
+  int _valueAt(int index) => widget.maxValue - index;
 
   @override
   void initState() {
@@ -70,7 +75,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
 
   void _onScroll() {
     final value = _valueAt(_controller.selectedItem);
-    if (value >= 0 && value <= _maxValue && value != widget.value) {
+    if (value >= 0 && value <= widget.maxValue && value != widget.value) {
       widget.onValueChanged(value);
     }
   }
@@ -105,7 +110,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
               childDelegate: ListWheelChildBuilderDelegate(
                 builder: (context, index) {
                   final displayIndex = _valueAt(index);
-                  if (displayIndex < 0 || displayIndex > _maxValue) {
+                  if (displayIndex < 0 || displayIndex > widget.maxValue) {
                     return const SizedBox.shrink();
                   }
                   return Center(
@@ -137,7 +142,7 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
                     ),
                   );
                 },
-                childCount: _maxValue + 1,
+                childCount: widget.maxValue + 1,
               ),
             ),
           ),

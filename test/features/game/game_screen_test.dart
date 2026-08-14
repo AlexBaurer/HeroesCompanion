@@ -8,6 +8,7 @@ import 'package:heroescompanion/domain/strength_modifier.dart';
 import 'package:heroescompanion/features/factions/data/faction_providers.dart';
 import 'package:heroescompanion/features/factions/data/faction_repository.dart';
 import 'package:heroescompanion/features/game/data/game_session_provider.dart';
+import 'package:heroescompanion/features/game/presentation/widgets/resource_counter_wheel.dart';
 import 'package:heroescompanion/main.dart';
 
 /// Богатая фракция: 2 юнита (toggle и counter модификаторы), 3 ресурса.
@@ -190,6 +191,59 @@ void main() {
     expect(find.text('Текущий раунд: 2'), findsOneWidget);
     expect(find.text('Сила в бой: 0'), findsOneWidget);
     expect(find.text('Сила армии: 2'), findsOneWidget);
+  });
+
+  testWidgets('колёсико «в бой» не может превысить общее число юнита', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester);
+    final notifier = container.read(gameSessionProvider('Тестовая').notifier);
+    notifier.setArmyTotal('soldier', 3);
+    await tester.pump();
+
+    final totalWheel = tester.widget<ResourceCounterWheel>(
+      find.byKey(const ValueKey('army-total-soldier')),
+    );
+    final deployedWheel = tester.widget<ResourceCounterWheel>(
+      find.byKey(const ValueKey('army-deployed-soldier')),
+    );
+    expect(totalWheel.maxValue, 99);
+    expect(deployedWheel.maxValue, 3);
+
+    // Сильная прокрутка «в бой» вверх останавливается на общем числе.
+    await tester.drag(
+      find.byKey(const ValueKey('army-deployed-soldier')),
+      const Offset(0, -600),
+    );
+    await tester.pumpAndSettle();
+
+    final session = container.read(gameSessionProvider('Тестовая'));
+    expect(session.armyDeployed('soldier'), 3);
+  });
+
+  testWidgets('уменьшение общего числа тянет колёсико «в бой» вниз', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester);
+    final notifier = container.read(gameSessionProvider('Тестовая').notifier);
+    notifier.setArmyTotal('soldier', 5);
+    notifier.setArmyDeployed('soldier', 4);
+    await tester.pump();
+
+    // Общее число падает ниже «в бой»: сессия клампит «в бой» до нового
+    // общего числа, колёсико перескакивает на новую границу.
+    notifier.setArmyTotal('soldier', 3);
+    await tester.pump();
+
+    final deployedWheel = tester.widget<ResourceCounterWheel>(
+      find.byKey(const ValueKey('army-deployed-soldier')),
+    );
+    expect(deployedWheel.maxValue, 3);
+    expect(deployedWheel.value, 3);
+    expect(
+      container.read(gameSessionProvider('Тестовая')).armyDeployed('soldier'),
+      3,
+    );
   });
 
   testWidgets('«Закончить игру» ведёт на ввод очков с фракцией игрока', (

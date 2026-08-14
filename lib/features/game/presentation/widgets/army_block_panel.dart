@@ -131,6 +131,7 @@ class _UnitCard extends ConsumerWidget {
                       child: Column(
                         children: [
                           ResourceCounterWheel(
+                            key: ValueKey('army-total-${unit.id}'),
                             value: session.armyTotal(unit.id),
                             onValueChanged: (value) =>
                                 notifier.setArmyTotal(unit.id, value),
@@ -138,9 +139,13 @@ class _UnitCard extends ConsumerWidget {
                             fontSize: 38,
                           ),
                           ResourceCounterWheel(
+                            key: ValueKey('army-deployed-${unit.id}'),
                             value: session.armyDeployed(unit.id),
                             onValueChanged: (value) =>
                                 notifier.setArmyDeployed(unit.id, value),
+                            // «В бой» не может превысить общее число юнита:
+                            // колёсико содержит только значения 0..total.
+                            maxValue: session.armyTotal(unit.id),
                             heightOfWheel: 48,
                             fontSize: 24,
                           ),
