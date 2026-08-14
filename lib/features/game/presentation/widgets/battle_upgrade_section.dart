@@ -54,7 +54,7 @@ class _BattleUpgradeSectionState extends ConsumerState<BattleUpgradeSection> {
 
   /// Обработчик чекбокса юнита: вне «в бой» или при заполненном лимите
   /// выбор недоступен.
-  ValueChanged<bool>? _unitToggleHandler(
+  ValueChanged<bool?>? _unitToggleHandler(
     GameSession session,
     Unit unit,
     BattleUpgrade upgrade,
