@@ -281,6 +281,42 @@ void main() {
       expect(session.round, 16);
       expect(session.isFinished, isTrue);
     });
+
+    test('новый раунд обнуляет «в бой» для всех юнитов фракции', () {
+      final session = GameSession(faction: _faction());
+      session.setArmyTotal('soldier', 3);
+      session.setArmyDeployed('soldier', 2);
+      session.setArmyTotal('latnik', 1);
+      session.setArmyDeployed('latnik', 1);
+
+      session.advanceRound();
+
+      expect(session.armyDeployed('soldier'), 0);
+      expect(session.armyDeployed('latnik'), 0);
+    });
+
+    test('новый раунд вычитает «в бой» из общего числа юнитов', () {
+      final session = GameSession(faction: _faction());
+      session.setArmyTotal('soldier', 5);
+      session.setArmyDeployed('soldier', 2);
+      session.setArmyTotal('latnik', 3);
+      session.setArmyDeployed('latnik', 3);
+
+      session.advanceRound();
+
+      expect(session.armyTotal('soldier'), 3);
+      expect(session.armyTotal('latnik'), 0);
+    });
+
+    test('новый раунд не трогает ресурсы', () {
+      final session = GameSession(faction: _faction());
+      session.setResource('Дерево', 7);
+
+      session.advanceRound();
+
+      expect(session.round, 2);
+      expect(session.resource('Дерево'), 7);
+    });
   });
 
   group('модификаторы: единый источник истины', () {
@@ -430,7 +466,7 @@ void main() {
       expect(session.battleUpgradeSelectedUnits, ['grifon']);
     });
 
-    test('новый раунд сбрасывает апгрейды без возврата дерева', () {
+    test('новый раунд сбрасывает апгрейды и «в бой» без возврата дерева', () {
       final session = _elfSession();
       session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);
 
@@ -441,7 +477,12 @@ void main() {
       expect(session.battleUpgradePaidWood, 0);
       expect(session.battleUpgradeSelectedUnits, isEmpty);
       expect(session.unitBattlePower('ent'), 6);
-      expect(session.deployedArmyStrength, 16);
+      expect(session.armyTotal('ent'), 0);
+      expect(session.armyTotal('grifon'), 0);
+      expect(session.armyTotal('pixi'), 0);
+      expect(session.armyDeployed('ent'), 0);
+      expect(session.deployedArmyStrength, 0);
+      expect(session.totalArmyStrength, 0);
       expect(session.resource('Дерево'), 3);
     });
 

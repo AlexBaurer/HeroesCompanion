@@ -228,15 +228,27 @@ class GameSession {
 
   /// Переходит к следующему раунду. Возвращает true, если партия завершена —
   /// вызов на 16-м раунде (после него игра окончена); раунд не меняется.
-  /// Эффект «Лавки бронника» сбрасывается на границе сражения.
+  /// На границе сражения юниты, отправленные в бой в прошедшем раунде,
+  /// вычитаются из общего числа и «в бой» обнуляется; ресурсы не трогаются.
+  /// Эффект «Лавки бронника» сбрасывается на той же границе.
   bool advanceRound() {
     resetBattleUpgrade();
+    _resetDeployedArmy();
     if (round >= maxRound) {
       _finished = true;
       return true;
     }
     round++;
     return false;
+  }
+
+  /// Сбрасывает «в бой» на границе сражения: отправленные юниты вычитаются
+  /// из общего числа, «в бой» обнуляется для всех юнитов фракции.
+  void _resetDeployedArmy() {
+    for (final unit in faction.units) {
+      setArmyTotal(unit.id, armyTotal(unit.id) - armyDeployed(unit.id));
+      setArmyDeployed(unit.id, 0);
+    }
   }
 
   void setActionLevel(GameAction action, int level) {

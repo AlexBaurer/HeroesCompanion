@@ -172,6 +172,26 @@ void main() {
     },
   );
 
+  testWidgets('«Следующий раунд» обнуляет «в бой» и вычитает из армии', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester);
+    final notifier = container.read(gameSessionProvider('Тестовая').notifier);
+    notifier.setArmyTotal('soldier', 3);
+    notifier.setArmyDeployed('soldier', 2);
+    await tester.pump();
+
+    expect(find.text('Сила в бой: 4'), findsOneWidget);
+    expect(find.text('Сила армии: 6'), findsOneWidget);
+
+    await tester.tap(find.text('Следующий раунд'));
+    await tester.pump();
+
+    expect(find.text('Текущий раунд: 2'), findsOneWidget);
+    expect(find.text('Сила в бой: 0'), findsOneWidget);
+    expect(find.text('Сила армии: 2'), findsOneWidget);
+  });
+
   testWidgets('«Закончить игру» ведёт на ввод очков с фракцией игрока', (
     tester,
   ) async {
@@ -285,7 +305,7 @@ void main() {
         findsOneWidget,
       );
 
-      // Новый раунд сбрасывает эффект без возврата дерева.
+      // Новый раунд сбрасывает эффект и «в бой» без возврата дерева.
       await tester.tapAt(const Offset(600, 30));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Следующий раунд'));
@@ -294,8 +314,10 @@ void main() {
       final afterRound = container.read(gameSessionProvider('Лавка'));
       expect(afterRound.battleUpgradeActive, isFalse);
       expect(afterRound.battleUpgradeSelectedUnits, isEmpty);
+      expect(afterRound.armyDeployed('ent'), 0);
       expect(afterRound.resource('Дерево'), 3);
-      expect(find.text('Сила в бой: 16'), findsOneWidget);
+      expect(find.text('Сила в бой: 0'), findsOneWidget);
+      expect(find.text('Сила армии: 0'), findsOneWidget);
     },
   );
 
