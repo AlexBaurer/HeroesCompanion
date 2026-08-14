@@ -360,7 +360,7 @@ void main() {
       expect(session.unitBattlePower('pixi'), 1);
     });
 
-    test('сила «в бой» учитывает апгрейды, общая сила — нет (пример: 10 + 6 + 5 + 1 = 22)', () {
+    test('сила «в бой» учитывает апгрейды, общая сила — нет (оба энта: 2 × 10 + 5 + 1 = 26)', () {
       final session = _elfSession();
 
       session.applyBattleUpgrade(wood: 2, unitIds: const ['ent', 'grifon']);

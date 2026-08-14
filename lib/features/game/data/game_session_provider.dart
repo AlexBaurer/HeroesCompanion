@@ -62,11 +62,6 @@ class GameSessionNotifier extends FamilyNotifier<GameSession, String> {
     ref.notifyListeners();
   }
 
-  void resetBattleUpgrade() {
-    state.resetBattleUpgrade();
-    ref.notifyListeners();
-  }
-
   /// Переходит к следующему раунду; возвращает true, если партия завершена.
   bool advanceRound() {
     final finished = state.advanceRound();
