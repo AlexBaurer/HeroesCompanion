@@ -15,7 +15,9 @@ import 'widgets/load_error.dart';
 /// подсчёта с автоматической суммой; игроки 2–4 — одну ячейку «Итог»
 /// с прямым вводом суммы (как в v1). Ячейки — картинки-карточки 100×100
 /// из `assets/score_screen/` (без ассета — подпись с полем). Сохраняет
-/// запись в формате v1 и переходит к истории.
+/// запись в формате v1 и переходит к истории. Верхнего бара нет (тикет
+/// 18): заголовок «Ввод очков» — в теле экрана, системное «назад»
+/// выбрасывает на главное меню.
 class ScoreEntryScreen extends ConsumerStatefulWidget {
   const ScoreEntryScreen({super.key, this.factionName});
 
@@ -149,16 +151,27 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final catalog = ref.watch(factionCatalogProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Ввод очков')),
-      body: catalog.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => LoadError(
-          message: 'Не удалось загрузить фракции',
-          error: error,
-          onRetry: () => ref.invalidate(factionCatalogProvider),
+    // Тикет 18: «назад» с ввода очков не ведёт на экран партии (партия
+    // завершена) — одно системное нажатие отправляет на главное меню.
+    // Видимой стрелки нет: верхний бар убран.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.go('/');
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: catalog.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) => LoadError(
+              message: 'Не удалось загрузить фракции',
+              error: error,
+              onRetry: () => ref.invalidate(factionCatalogProvider),
+            ),
+            data: (data) => _buildBody(data),
+          ),
         ),
-        data: (data) => _buildBody(data),
       ),
     );
   }
@@ -167,6 +180,8 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Text('Ввод очков', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 12),
         _PlayerSection(
           title: 'Игрок 1',
           factionLabel: _factionOf(_player1, catalog),

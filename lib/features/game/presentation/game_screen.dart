@@ -140,9 +140,13 @@ class _GameView extends ConsumerWidget {
 
   void _finishGame(BuildContext context, WidgetRef ref) {
     // Партия завершена: модель фиксирует завершение (advanceRound на
-    // 16-м раунде), затем переход к вводу очков.
+    // 16-м раунде), затем переход к вводу очков. pushReplacement (тикет
+    // 18): экран партии уходит из стека — живой сессии за спиной не
+    // остаётся, вернуться в партию нельзя.
     ref.read(gameSessionProvider(factionName).notifier).advanceRound();
-    context.push('/score?faction=${Uri.encodeQueryComponent(factionName)}');
+    context.pushReplacement(
+      '/score?faction=${Uri.encodeQueryComponent(factionName)}',
+    );
   }
 
   @override
