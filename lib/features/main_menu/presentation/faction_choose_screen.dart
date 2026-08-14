@@ -52,10 +52,13 @@ class FactionChooseScreen extends ConsumerWidget {
 
 /// Иммерсивный AppBar: полупрозрачная подложка, заголовок с той же
 /// обводкой, что и имена на плитках, «назад» — на полупрозрачном круге.
-class _ImmersiveAppBar extends StatelessWidget {
+class _ImmersiveAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _ImmersiveAppBar();
 
   static const _scrim = Color(0x59000000);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
