@@ -8,6 +8,7 @@ import 'package:heroescompanion/domain/game_record.dart';
 
 import '../../factions/data/faction_providers.dart';
 import '../data/game_record_providers.dart';
+import 'widgets/load_error.dart';
 
 /// Экран результатов партии: игрок 1 с фракцией из партии, опциональные
 /// игроки 2–4 (имя + фракция), 6 ячеек подсчёта (здания, фундаменты,
@@ -111,6 +112,9 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
     setState(() => _saving = true);
     final storage = await ref.read(gameRecordStorageProvider.future);
     await storage.add(GameRecord(dateTime: DateTime.now(), playerScores: players));
+    // История на экране записи кэшируется: после сохранения сбрасываем,
+    // чтобы новая запись появилась при открытии истории.
+    ref.invalidate(scoreHistoryProvider);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Результаты успешно сохранены')),
@@ -125,7 +129,8 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
       appBar: AppBar(title: const Text('Ввод очков')),
       body: catalog.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _LoadError(
+        error: (error, stackTrace) => LoadError(
+          message: 'Не удалось загрузить фракции',
           error: error,
           onRetry: () => ref.invalidate(factionCatalogProvider),
         ),
@@ -177,41 +182,6 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.error, required this.onRetry});
-
-  final Object error;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 12),
-            const Text('Не удалось загрузить фракции'),
-            const SizedBox(height: 8),
-            Text(
-              '$error',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: onRetry, child: const Text('Повторить')),
-          ],
-        ),
-      ),
     );
   }
 }

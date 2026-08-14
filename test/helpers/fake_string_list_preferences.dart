@@ -12,4 +12,9 @@ class FakeStringListPreferences implements StringListPreferences {
   Future<void> setStringList(String key, List<String> value) async {
     store[key] = List.of(value);
   }
+
+  @override
+  Future<void> remove(String key) async {
+    store.remove(key);
+  }
 }

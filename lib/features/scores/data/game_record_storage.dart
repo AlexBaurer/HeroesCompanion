@@ -2,11 +2,13 @@ import 'package:heroescompanion/domain/game_record.dart';
 import 'package:heroescompanion/domain/game_record_codec.dart';
 
 /// Минимальный доступ к хранилищу строковых списков (в проде —
-/// shared_preferences): чтение и запись списка строк по ключу.
+/// shared_preferences): чтение, запись и удаление списка строк по ключу.
 abstract interface class StringListPreferences {
   Future<List<String>?> getStringList(String key);
 
   Future<void> setStringList(String key, List<String> value);
+
+  Future<void> remove(String key);
 }
 
 /// Хранилище записей игр в shared_preferences: ключ `score_records`,
@@ -36,6 +38,11 @@ class GameRecordStorage {
   /// Все записи истории: читаются как в v1 (битые строки пропускаются).
   Future<List<GameRecord>> loadAll() async {
     return _codec.decodeAll(await _readSources());
+  }
+
+  /// Удаляет всю историю (ключ `score_records`), как это делала v1.
+  Future<void> clear() async {
+    await preferences.remove(recordsKey);
   }
 
   Future<List<String>> _readSources() async {

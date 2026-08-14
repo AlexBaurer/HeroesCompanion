@@ -101,4 +101,26 @@ void main() {
       expect(loaded.single.playerScores.single.playerName, 'Иван');
     });
   });
+
+  group('clear: очистка истории', () {
+    test('удаляет ключ, история становится пустой', () async {
+      await storage.add(_record());
+
+      await storage.clear();
+
+      expect(prefs.store.containsKey(GameRecordStorage.recordsKey), isFalse);
+      expect(await storage.loadAll(), isEmpty);
+    });
+
+    test('после очистки можно добавлять новые записи', () async {
+      await storage.add(_record());
+
+      await storage.clear();
+      await storage.add(_record(dateTime: DateTime(2026, 7, 1)));
+
+      final loaded = await storage.loadAll();
+      expect(loaded, hasLength(1));
+      expect(loaded.single.dateTime, DateTime(2026, 7, 1));
+    });
+  });
 }
