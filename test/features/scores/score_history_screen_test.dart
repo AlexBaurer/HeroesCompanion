@@ -39,9 +39,9 @@ FactionRepository _fakeRepository() {
 PlayerScore _player(String name, int score, String faction) =>
     PlayerScore(playerName: name, score: score, faction: faction);
 
-GameRecord _record({required DateTime dateTime, List<PlayerScore>? players}) {
+GameRecord _record({DateTime? dateTime, List<PlayerScore>? players}) {
   return GameRecord(
-    dateTime: dateTime,
+    dateTime: dateTime ?? DateTime(2026, 8, 12, 18, 30),
     playerScores: players ?? [_player('Иван', 42, 'Майя')],
   );
 }
