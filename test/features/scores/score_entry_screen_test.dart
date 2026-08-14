@@ -49,6 +49,21 @@ Future<ProviderContainer> _openScoreScreen(
   );
   addTearDown(container.dispose);
 
+  // Ассеты из pubspec в `flutter test` не грузятся: без мока канал
+  // 'flutter/assets' никогда не отвечает, Image.asset остаётся в загрузке
+  // и errorBuilder ячеек не срабатывает. Мок отвечает null — загрузка
+  // падает сразу и тесты видят фолбэк ячеек (подписи категорий).
+  tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+    'flutter/assets',
+    (message) async => null,
+  );
+  addTearDown(() {
+    tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+      'flutter/assets',
+      null,
+    );
+  });
+
   tester.view.physicalSize = const Size(1200, 2400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
