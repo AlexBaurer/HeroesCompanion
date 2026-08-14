@@ -16,6 +16,18 @@ class FactionChooseScreen extends ConsumerWidget {
   /// Высота плитки фракции (~120dp; пользователь может скорректировать).
   static const tileHeight = 120.0;
 
+  /// Размер имени фракции на плитке (20sp × 2 по запросу пользователя).
+  static const tileNameFontSize = 40.0;
+
+  /// Сдвиг фоновой картинки плитки по вертикали в пикселях (положительный —
+  /// вниз, отрицательный — вверх). Картинка-подложка рисуется с запасом по
+  /// высоте, поэтому сдвиг не открывает края плитки.
+  static const backgroundShiftY = 0.0;
+
+  /// Запас высоты фоновой картинки выше и ниже плитки, чтобы сдвиг
+  /// [backgroundShiftY] не открывал край плитки.
+  static const _backgroundOverflow = 60.0;
+
   /// Обводка краёв букв: у TextStyle нет нативного stroke, поэтому
   /// рисуются 4 тени по сторонам (тикет 12).
   static TextStyle strokedTextStyle({double fontSize = 20}) {
@@ -154,11 +166,23 @@ class _FactionTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              faction.backgroundPath,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  ColoredBox(color: colorFromHex(faction.color)),
+            // Фон с запасом по вертикали: сдвиг картинки (backgroundShiftY)
+            // не открывает края плитки — край уходит за пределы клипа.
+            Positioned(
+              top:
+                  FactionChooseScreen.backgroundShiftY -
+                  FactionChooseScreen._backgroundOverflow,
+              left: 0,
+              right: 0,
+              height:
+                  FactionChooseScreen.tileHeight +
+                  2 * FactionChooseScreen._backgroundOverflow,
+              child: Image.asset(
+                faction.backgroundPath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    ColoredBox(color: colorFromHex(faction.color)),
+              ),
             ),
             Align(
               alignment: Alignment.centerLeft,
@@ -166,7 +190,9 @@ class _FactionTile extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 16),
                 child: Text(
                   faction.name,
-                  style: FactionChooseScreen.strokedTextStyle(),
+                  style: FactionChooseScreen.strokedTextStyle(
+                    fontSize: FactionChooseScreen.tileNameFontSize,
+                  ),
                 ),
               ),
             ),

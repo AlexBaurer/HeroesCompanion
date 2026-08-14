@@ -49,13 +49,12 @@ void main() {
   ) async {
     await _openFactionChoose(tester);
 
-    // Fallback-цвет (errorBuilder) заполняет плитку: его размер равен
-    // размеру плитки — на всю ширину, высота фиксирована.
-    final colorBox = find.descendant(
-      of: find.ancestor(of: find.text('Люди'), matching: find.byType(InkWell)),
-      matching: find.byType(ColoredBox),
+    // Плитка (InkWell) растянута на всю ширину, высота фиксирована.
+    final tile = find.ancestor(
+      of: find.text('Люди'),
+      matching: find.byType(InkWell),
     );
-    final box = tester.renderObject<RenderBox>(colorBox);
+    final box = tester.renderObject<RenderBox>(tile);
     expect(box.size.width, 1200);
     expect(box.size.height, FactionChooseScreen.tileHeight);
 
