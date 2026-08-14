@@ -157,7 +157,9 @@ void main() {
     expect(find.text('35'), findsOneWidget);
   });
 
-  testWidgets('карточка показывает итог и число игроков', (tester) async {
+  testWidgets('карточка показывает число игроков; удаление — внутри раскрытия', (
+    tester,
+  ) async {
     final storage = GameRecordStorage(preferences: FakePreferences());
     await storage.add(
       _record(
@@ -168,12 +170,19 @@ void main() {
     await _openHistoryScreen(tester, storage: storage);
 
     expect(find.text('Игра от 01.08.2026 18:30'), findsOneWidget);
-    expect(find.text('Итог: 77'), findsOneWidget);
     expect(find.text('2 игрока'), findsOneWidget);
+    // Итог не показывается, кнопка удаления — только внутри раскрытой
+    // карточки.
+    expect(find.text('Итог: 77'), findsNothing);
+    expect(find.byIcon(Icons.delete_outline), findsNothing);
+
+    await tester.tap(find.text('Игра от 01.08.2026 18:30'));
+    await tester.pumpAndSettle();
+
     expect(find.byIcon(Icons.delete_outline), findsOneWidget);
   });
 
-  testWidgets('удаление записи по кнопке на карточке с подтверждением', (
+  testWidgets('удаление записи по кнопке на раскрытой карточке с подтверждением', (
     tester,
   ) async {
     final prefs = FakePreferences();
@@ -181,10 +190,11 @@ void main() {
     await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
     await storage.add(_record(dateTime: DateTime(2026, 9, 1, 18, 30)));
     await _openHistoryScreen(tester, storage: storage);
-    expect(find.byIcon(Icons.delete_outline), findsNWidgets(2));
 
     // Удаляем первую карточку (самая свежая запись).
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.tap(find.text('Игра от 01.09.2026 18:30'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
     expect(find.text('Удалить запись'), findsOneWidget);
     expect(
@@ -209,7 +219,9 @@ void main() {
     await storage.add(_record(dateTime: DateTime(2026, 9, 1, 18, 30)));
     await _openHistoryScreen(tester, storage: storage);
 
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.tap(find.text('Игра от 01.09.2026 18:30'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Отмена'));
     await tester.pumpAndSettle();
@@ -225,6 +237,8 @@ void main() {
     await storage.add(_record(dateTime: DateTime(2026, 8, 1, 18, 30)));
     await _openHistoryScreen(tester, storage: storage);
 
+    await tester.tap(find.text('Игра от 01.08.2026 18:30'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Удалить'));
