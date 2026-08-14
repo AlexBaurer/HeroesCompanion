@@ -72,8 +72,12 @@ class _ResourceCounterWheelState extends State<ResourceCounterWheel> {
   @override
   void didUpdateWidget(covariant ResourceCounterWheel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final shown = _valueAt(_controller.selectedItem);
-    if (widget.value != oldWidget.value && widget.value != shown) {
+    // Перескок нужен не только при изменении значения, но и при изменении
+    // верхней границы: индекс значения в колёсике зависит от maxValue, иначе
+    // колёсико покажет maxValue вместо фактического значения.
+    if ((widget.value != oldWidget.value ||
+            widget.maxValue != oldWidget.maxValue) &&
+        widget.value != _valueAt(_controller.selectedItem)) {
       _programmaticJump = true;
       _controller.jumpToItem(_indexFor(widget.value));
       _programmaticJump = false;

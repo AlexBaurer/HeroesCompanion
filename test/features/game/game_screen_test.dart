@@ -246,6 +246,32 @@ void main() {
     );
   });
 
+  testWidgets('увеличение общего числа не двигает колёсико «в бой»', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester);
+    final notifier = container.read(gameSessionProvider('Тестовая').notifier);
+
+    // Общее число растёт с 0 до 3: «в бой» остаётся на 0 — игрок сам
+    // крутит своё колёсико, оно лишь не может превысить общее число.
+    notifier.setArmyTotal('soldier', 3);
+    await tester.pump();
+
+    // Колёсико «в бой» показывает 0 (индекс значения при maxValue 3 —
+    // позиция 3 × 75px), а не maxValue (позиция 0).
+    final deployedScrollable = tester.state<ScrollableState>(
+      find.descendant(
+        of: find.byKey(const ValueKey('army-deployed-soldier')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(deployedScrollable.position.pixels, 3 * 75);
+
+    final session = container.read(gameSessionProvider('Тестовая'));
+    expect(session.armyDeployed('soldier'), 0);
+    expect(find.text('Сила в бой: 0'), findsOneWidget);
+  });
+
   testWidgets('«Закончить игру» ведёт на ввод очков с фракцией игрока', (
     tester,
   ) async {
