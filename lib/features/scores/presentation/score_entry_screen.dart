@@ -144,7 +144,7 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
           lockedFaction: true,
           entry: _player1,
           nameKey: const ValueKey('p1-name'),
-          cellsKeys: const [
+          cellsKeys: [
             for (var i = 0; i < 5; i++) ValueKey('p1-cell-$i'),
           ],
           sumKey: const ValueKey('p1-sum'),
