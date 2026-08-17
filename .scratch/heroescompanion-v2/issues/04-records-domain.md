@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Round-trip: запись → JSON → запись идентична
 - [x] JSON-формат совпадает с v1 (dateTime ISO-8601, playerScores: playerName/score/faction)
