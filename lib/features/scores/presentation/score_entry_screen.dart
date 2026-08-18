@@ -16,7 +16,9 @@ import 'widgets/load_error.dart';
 /// с прямым вводом суммы (как в v1). Тикет 21: изначально на экране две
 /// секции (Игрок 1 и Игрок 2), «Добавить игрока» внизу списка добавляет
 /// секции до 4 игроков (дальше кнопки нет); «Сохранить результаты»
-/// закреплена сверху, вне прокрутки. Ячейки — картинки-карточки 100×100
+/// закреплена сверху, вне прокрутки. Игроков 3–4 можно удалить кнопкой
+/// в секции (Игроки 1–2 постоянны) — нумерация сдвигается. Ячейки —
+/// картинки-карточки 100×100
 /// из `assets/score_screen/` (без ассета — подпись с полем). Сохраняет
 /// запись в формате v1 и переходит к истории. Верхнего бара нет (тикет
 /// 18): заголовок «Ввод очков» — в теле экрана, системное «назад»
@@ -122,6 +124,17 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
     setState(() {
       _others.add(_PlayerEntry(faction: '', cellCount: 1));
     });
+  }
+
+  /// Удаление добавленного игрока (Игрок 3/4): секция исчезает,
+  /// нумерация сдвигается; Игроков 1 и 2 удалить нельзя.
+  void _removePlayer(int index) {
+    final removed = _others.removeAt(index);
+    setState(() {});
+    // Контроллеры освобождаем после кадра: сначала секция при анмаунте
+    // снимает свои слушатели, иначе removeListener упадёт на
+    // освобождённом контроллере в debug-режиме.
+    WidgetsBinding.instance.addPostFrameCallback((_) => removed.dispose());
   }
 
   /// Фракция игрока: выбранная, либо первая из каталога, если ещё не
@@ -255,6 +268,10 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
                   cellsKeys: [ValueKey('p${i + 2}-cell-0')],
                   assets: const [_generalAsset],
                   factionKey: ValueKey('p${i + 2}-faction'),
+                  // Игрок 2 постоянен; Игроков 3–4 можно удалить
+                  // крестиком в секции — нумерация сдвигается.
+                  onDelete: i == 0 ? null : () => _removePlayer(i),
+                  deleteKey: i == 0 ? null : ValueKey('p${i + 2}-delete'),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -275,7 +292,8 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
 }
 
 /// Карточка игрока: имя, фракция (выбор или подпись из партии)
-/// и ячейки подсчёта.
+/// и ячейки подсчёта. При переданном [onDelete] в заголовке секции
+/// показывается кнопка удаления (Игроки 3–4).
 class _PlayerSection extends StatelessWidget {
   const _PlayerSection({
     required this.title,
@@ -289,6 +307,8 @@ class _PlayerSection extends StatelessWidget {
     this.factions = const [],
     this.onFactionChanged,
     this.factionKey,
+    this.onDelete,
+    this.deleteKey,
   });
 
   final String title;
@@ -302,6 +322,8 @@ class _PlayerSection extends StatelessWidget {
   final List<String> assets;
   final Key? sumKey;
   final Key? factionKey;
+  final VoidCallback? onDelete;
+  final Key? deleteKey;
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +333,24 @@ class _PlayerSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (onDelete != null)
+                  IconButton(
+                    key: deleteKey,
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Удалить игрока',
+                    color: Theme.of(context).colorScheme.error,
+                    onPressed: onDelete,
+                  ),
+              ],
+            ),
             const SizedBox(height: 8),
             TextField(
               key: nameKey,

@@ -101,10 +101,10 @@ Future<void> _addPlayers(WidgetTester tester, int count) async {
   }
 }
 
-/// Текст ячейки подсчёта по ключу ячейки (поле ввода внутри).
-String _cellText(WidgetTester tester, Key cellKey) {
+/// Текст поля ввода по ключу (ячейка подсчёта или имя игрока).
+String _fieldText(WidgetTester tester, Key fieldKey) {
   final field = tester.widget<TextField>(
-    find.descendant(of: find.byKey(cellKey), matching: find.byType(TextField)),
+    find.descendant(of: find.byKey(fieldKey), matching: find.byType(TextField)),
   );
   return field.controller!.text;
 }
@@ -186,6 +186,70 @@ void main() {
     expect(find.text('Добавить игрока'), findsNothing);
   });
 
+  testWidgets('у Игроков 3 и 4 есть кнопка удаления, у Игроков 1 и 2 — нет', (
+    tester,
+  ) async {
+    await _openScoreScreen(tester);
+    await _addPlayers(tester, 2);
+
+    expect(find.byKey(const ValueKey('p1-delete')), findsNothing);
+    expect(find.byKey(const ValueKey('p2-delete')), findsNothing);
+    expect(find.byKey(const ValueKey('p3-delete')), findsOneWidget);
+    expect(find.byKey(const ValueKey('p4-delete')), findsOneWidget);
+  });
+
+  testWidgets(
+    'удаление игрока убирает секцию, нумерация сдвигается, «Добавить игрока» возвращается',
+    (tester) async {
+      await _openScoreScreen(tester);
+      await _addPlayers(tester, 2);
+
+      await tester.enterText(find.byKey(const ValueKey('p3-name')), 'Сидор');
+      await tester.enterText(find.byKey(const ValueKey('p4-name')), 'Фёдор');
+
+      // Удаляем Игрока 3: Игрок 4 перенумеровывается в Игрока 3 со своими
+      // данными, кнопка «Добавить игрока» возвращается.
+      await tester.tap(find.byKey(const ValueKey('p3-delete')));
+      await tester.pumpAndSettle();
+      expect(find.text('Игрок 3'), findsOneWidget);
+      expect(find.text('Игрок 4'), findsNothing);
+      expect(find.text('Добавить игрока'), findsOneWidget);
+      expect(_fieldText(tester, const ValueKey('p3-name')), 'Фёдор');
+
+      // Удаляем и его — на экране снова две секции.
+      await tester.tap(find.byKey(const ValueKey('p3-delete')));
+      await tester.pumpAndSettle();
+      expect(find.text('Игрок 1'), findsOneWidget);
+      expect(find.text('Игрок 2'), findsOneWidget);
+      expect(find.text('Игрок 3'), findsNothing);
+      expect(find.text('Добавить игрока'), findsOneWidget);
+    },
+  );
+
+  testWidgets('удалённый игрок не попадает в запись', (tester) async {
+    final container = await _openScoreScreen(tester);
+    await _addPlayers(tester, 2);
+
+    await tester.enterText(find.byKey(const ValueKey('p1-name')), 'Иван');
+    await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '7');
+    await tester.enterText(find.byKey(const ValueKey('p2-name')), 'Пётр');
+    await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), '10');
+    await tester.enterText(find.byKey(const ValueKey('p3-name')), 'Сидор');
+    await tester.enterText(find.byKey(const ValueKey('p3-cell-0')), '12');
+    await tester.enterText(find.byKey(const ValueKey('p4-name')), 'Фёдор');
+    await tester.enterText(find.byKey(const ValueKey('p4-cell-0')), '5');
+
+    await tester.tap(find.byKey(const ValueKey('p4-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить результаты'));
+    await tester.pumpAndSettle();
+
+    final records = await _savedRecords(container);
+    expect(records.single.playerScores, hasLength(3));
+    expect(records.single.playerScores[2].playerName, 'Сидор');
+    expect(records.single.playerScores[2].score, 12);
+  });
+
   testWidgets('«Сохранить результаты» закреплена сверху, вне прокрутки', (
     tester,
   ) async {
@@ -231,11 +295,11 @@ void main() {
 
     await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '12a');
     await tester.pump();
-    expect(_cellText(tester, const ValueKey('p1-cell-0')), '');
+    expect(_fieldText(tester, const ValueKey('p1-cell-0')), '');
 
     await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), 'abc');
     await tester.pump();
-    expect(_cellText(tester, const ValueKey('p2-cell-0')), '');
+    expect(_fieldText(tester, const ValueKey('p2-cell-0')), '');
   });
 
   testWidgets('отрицательные очки вводятся, сумма становится отрицательной', (
