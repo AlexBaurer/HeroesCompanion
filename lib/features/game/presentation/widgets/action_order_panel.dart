@@ -79,13 +79,13 @@ class ActionOrderPanel extends ConsumerWidget {
               _ActionSlot(key: ValueKey(action), action: action),
           ],
         ),
-        // Номера уровней 1–4 поверх списка, как в v1 (карточка 55px +
-        // вертикальные отступы 6px = шаг 67px); пятая ячейка номера
+        // Номера уровней 1–4 поверх списка, как в v1 (карточка 64px +
+        // вертикальные отступы 6px = шаг 76px); пятая ячейка номера
         // не получает.
         for (var i = 0; i < slots.length - 1; i++)
           Positioned(
             left: 20,
-            top: 10.0 + i * 67.0,
+            top: 20.0 + i * 76.0,
             child: Text(
               '${i + 1}',
               style: const TextStyle(
@@ -123,7 +123,7 @@ class ActionOrderPanel extends ConsumerWidget {
 }
 
 /// Ячейка порядка действий в стиле v1: карточка с картинкой действия
-/// по центру плитки (~32px); при отсутствии ассета — иконка действия.
+/// 130×64; при отсутствии ассета — иконка действия.
 class _ActionSlot extends StatelessWidget {
   const _ActionSlot({super.key, required this.action});
 
@@ -135,22 +135,17 @@ class _ActionSlot extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
       borderOnForeground: false,
-      child: SizedBox(
-        height: 55,
-        child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              actionIconPaths[action]!,
-              width: 32,
-              height: 32,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                _actionIconFallback(action),
-                color: theme.colorScheme.onSurfaceVariant,
-                size: 20,
-              ),
-            ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          actionIconPaths[action]!,
+          width: 130,
+          height: 64,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            _actionIconFallback(action),
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
           ),
         ),
       ),
