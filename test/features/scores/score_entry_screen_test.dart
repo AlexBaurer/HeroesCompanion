@@ -93,19 +93,24 @@ Future<List<GameRecord>> _savedRecords(ProviderContainer container) async {
   return [for (final entry in entries) entry.record];
 }
 
+/// Тапы по «Добавить игрока» `count` раз (появляются Игрок 3, Игрок 4).
+Future<void> _addPlayers(WidgetTester tester, int count) async {
+  for (var i = 0; i < count; i++) {
+    await tester.tap(find.text('Добавить игрока'));
+    await tester.pumpAndSettle();
+  }
+}
+
 /// Текст ячейки подсчёта по ключу ячейки (поле ввода внутри).
 String _cellText(WidgetTester tester, Key cellKey) {
   final field = tester.widget<TextField>(
-    find.descendant(
-      of: find.byKey(cellKey),
-      matching: find.byType(TextField),
-    ),
+    find.descendant(of: find.byKey(cellKey), matching: find.byType(TextField)),
   );
   return field.controller!.text;
 }
 
 void main() {
-  testWidgets('экран: игрок 1 с фракцией из партии, 4 игрока, ячейки подсчёта', (
+  testWidgets('экран: изначально 2 игрока, «Добавить игрока» внизу', (
     tester,
   ) async {
     await _openScoreScreen(tester);
@@ -120,10 +125,16 @@ void main() {
       Theme.of(titleContext).textTheme.titleLarge,
     );
     expect(find.text('Фракция: Тестовая'), findsOneWidget);
-    for (var player = 1; player <= 4; player++) {
-      expect(find.text('Игрок $player'), findsOneWidget);
-      expect(find.byKey(ValueKey('p$player-name')), findsOneWidget);
-    }
+    // Тикет 21: изначально две секции — Игрок 1 и Игрок 2; Игроки 3/4
+    // появляются только по «Добавить игрока».
+    expect(find.text('Игрок 1'), findsOneWidget);
+    expect(find.text('Игрок 2'), findsOneWidget);
+    expect(find.text('Игрок 3'), findsNothing);
+    expect(find.text('Игрок 4'), findsNothing);
+    expect(find.byKey(const ValueKey('p1-name')), findsOneWidget);
+    expect(find.byKey(const ValueKey('p2-name')), findsOneWidget);
+    expect(find.byKey(const ValueKey('p3-name')), findsNothing);
+    expect(find.byKey(const ValueKey('p4-name')), findsNothing);
     // 5 категорий и сумма — только у игрока 1 (в тестах без ассетов
     // ячейки показывают подписи в fallback).
     for (final label in [
@@ -136,8 +147,9 @@ void main() {
     ]) {
       expect(find.text(label), findsOneWidget);
     }
-    // У игроков 2–4 — одна ячейка «Итог» вместо категорий и автосуммы.
-    expect(find.text('Итог'), findsNWidgets(3));
+    // У игрока 2 — одна ячейка «Итог» вместо категорий и автосуммы.
+    expect(find.text('Итог'), findsOneWidget);
+    expect(find.text('Добавить игрока'), findsOneWidget);
     expect(find.text('Сохранить результаты'), findsOneWidget);
   });
 
@@ -145,6 +157,7 @@ void main() {
     tester,
   ) async {
     await _openScoreScreen(tester);
+    await _addPlayers(tester, 2);
 
     for (var player = 2; player <= 4; player++) {
       expect(find.byKey(ValueKey('p$player-cell-0')), findsOneWidget);
@@ -155,22 +168,61 @@ void main() {
     }
   });
 
-  testWidgets('автосумма игрока 1 считается из пяти ячеек и меняется при вводе', (
+  testWidgets('«Добавить игрока» добавляет секции до 4, дальше кнопки нет', (
     tester,
   ) async {
     await _openScoreScreen(tester);
 
-    expect(find.text('0'), findsOneWidget);
+    expect(find.text('Игрок 3'), findsNothing);
+    expect(find.text('Добавить игрока'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '2');
-    await tester.enterText(find.byKey(const ValueKey('p1-cell-1')), '3');
-    await tester.enterText(find.byKey(const ValueKey('p1-cell-2')), '0');
-    await tester.enterText(find.byKey(const ValueKey('p1-cell-3')), '4');
-    await tester.enterText(find.byKey(const ValueKey('p1-cell-4')), '6');
-    await tester.pump();
+    await _addPlayers(tester, 1);
+    expect(find.text('Игрок 3'), findsOneWidget);
+    expect(find.text('Игрок 4'), findsNothing);
+    expect(find.text('Добавить игрока'), findsOneWidget);
 
-    expect(find.text('15'), findsOneWidget);
+    await _addPlayers(tester, 1);
+    expect(find.text('Игрок 4'), findsOneWidget);
+    expect(find.text('Добавить игрока'), findsNothing);
   });
+
+  testWidgets('«Сохранить результаты» закреплена сверху, вне прокрутки', (
+    tester,
+  ) async {
+    await _openScoreScreen(tester);
+
+    final saveButton = find.text('Сохранить результаты');
+    expect(saveButton, findsOneWidget);
+    // Кнопка не внутри списка игроков: заголовок и кнопка закреплены
+    // сверху, под ними скроллится список (тикет 21).
+    expect(
+      find.descendant(of: find.byType(ListView), matching: saveButton),
+      findsNothing,
+    );
+    // Кнопка выше первой секции игрока — видна без прокрутки.
+    expect(
+      tester.getRect(saveButton).top,
+      lessThan(tester.getRect(find.text('Игрок 1')).top),
+    );
+  });
+
+  testWidgets(
+    'автосумма игрока 1 считается из пяти ячеек и меняется при вводе',
+    (tester) async {
+      await _openScoreScreen(tester);
+
+      expect(find.text('0'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '2');
+      await tester.enterText(find.byKey(const ValueKey('p1-cell-1')), '3');
+      await tester.enterText(find.byKey(const ValueKey('p1-cell-2')), '0');
+      await tester.enterText(find.byKey(const ValueKey('p1-cell-3')), '4');
+      await tester.enterText(find.byKey(const ValueKey('p1-cell-4')), '6');
+      await tester.pump();
+
+      expect(find.text('15'), findsOneWidget);
+    },
+  );
 
   testWidgets('в ячейки нельзя ввести буквы — фильтр отбрасывает ввод', (
     tester,
@@ -222,49 +274,59 @@ void main() {
 
   testWidgets('сохраняются только заполненные игроки', (tester) async {
     final container = await _openScoreScreen(tester);
+    await _addPlayers(tester, 2);
 
     await tester.enterText(find.byKey(const ValueKey('p1-name')), 'Иван');
     await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '7');
     await tester.enterText(find.byKey(const ValueKey('p2-name')), 'Пётр');
     await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), '10');
+    await tester.enterText(find.byKey(const ValueKey('p3-name')), 'Сидор');
+    await tester.enterText(find.byKey(const ValueKey('p3-cell-0')), '12');
+    // Игрок 4 добавлен, но имя пустое — в запись не попадает.
     await tester.tap(find.text('Сохранить результаты'));
     await tester.pumpAndSettle();
 
     final records = await _savedRecords(container);
-    expect(records.single.playerScores, hasLength(2));
+    expect(records.single.playerScores, hasLength(3));
     expect(records.single.playerScores[0].playerName, 'Иван');
     expect(records.single.playerScores[0].score, 7);
     expect(records.single.playerScores[1].playerName, 'Пётр');
     expect(records.single.playerScores[1].score, 10);
-    // Фракция игрока 2 — первая из каталога (как в v1 — Faction.all[0]).
+    expect(records.single.playerScores[2].playerName, 'Сидор');
+    expect(records.single.playerScores[2].score, 12);
+    // Фракции игроков 2–4 — первая из каталога (как в v1 — Faction.all[0]).
     expect(records.single.playerScores[1].faction, 'Тестовая');
+    expect(records.single.playerScores[2].faction, 'Тестовая');
   });
 
-  testWidgets('итог игрока 2 — из его единственной ячейки, в т.ч. отрицательный', (
+  testWidgets(
+    'итог игрока 2 — из его единственной ячейки, в т.ч. отрицательный',
+    (tester) async {
+      final container = await _openScoreScreen(tester);
+
+      await tester.enterText(find.byKey(const ValueKey('p1-name')), 'Иван');
+      await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '10');
+      await tester.enterText(find.byKey(const ValueKey('p2-name')), 'Пётр');
+      await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), '-3');
+      await tester.tap(find.text('Сохранить результаты'));
+      await tester.pumpAndSettle();
+
+      final records = await _savedRecords(container);
+      expect(records.single.playerScores, hasLength(2));
+      expect(records.single.playerScores[1].playerName, 'Пётр');
+      expect(records.single.playerScores[1].score, -3);
+    },
+  );
+
+  testWidgets('выбор фракции игроков 2–4 из каталога попадает в запись', (
     tester,
   ) async {
     final container = await _openScoreScreen(tester);
-
-    await tester.enterText(find.byKey(const ValueKey('p1-name')), 'Иван');
-    await tester.enterText(find.byKey(const ValueKey('p1-cell-0')), '10');
-    await tester.enterText(find.byKey(const ValueKey('p2-name')), 'Пётр');
-    await tester.enterText(find.byKey(const ValueKey('p2-cell-0')), '-3');
-    await tester.tap(find.text('Сохранить результаты'));
-    await tester.pumpAndSettle();
-
-    final records = await _savedRecords(container);
-    expect(records.single.playerScores, hasLength(2));
-    expect(records.single.playerScores[1].playerName, 'Пётр');
-    expect(records.single.playerScores[1].score, -3);
-  });
-
-  testWidgets('выбор фракции игрока 2 из каталога попадает в запись', (
-    tester,
-  ) async {
-    final container = await _openScoreScreen(tester);
+    await _addPlayers(tester, 1);
 
     await tester.enterText(find.byKey(const ValueKey('p1-name')), 'Иван');
     await tester.enterText(find.byKey(const ValueKey('p2-name')), 'Пётр');
+    await tester.enterText(find.byKey(const ValueKey('p3-name')), 'Сидор');
 
     await tester.tap(find.byKey(const ValueKey('p2-faction')));
     await tester.pumpAndSettle();
@@ -272,11 +334,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Тестовая 1'), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('p3-faction')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Тестовая 2').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Тестовая 2'), findsOneWidget);
+
     await tester.tap(find.text('Сохранить результаты'));
     await tester.pumpAndSettle();
 
     final records = await _savedRecords(container);
     expect(records.single.playerScores[1].faction, 'Тестовая 1');
+    expect(records.single.playerScores[2].faction, 'Тестовая 2');
   });
 
   testWidgets('без имён — подсказка, запись не создаётся и перехода нет', (

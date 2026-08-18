@@ -13,7 +13,10 @@ import 'widgets/load_error.dart';
 
 /// Экран результатов партии: игрок 1 (фракция из партии) вводит 5 ячеек
 /// подсчёта с автоматической суммой; игроки 2–4 — одну ячейку «Итог»
-/// с прямым вводом суммы (как в v1). Ячейки — картинки-карточки 100×100
+/// с прямым вводом суммы (как в v1). Тикет 21: изначально на экране две
+/// секции (Игрок 1 и Игрок 2), «Добавить игрока» внизу списка добавляет
+/// секции до 4 игроков (дальше кнопки нет); «Сохранить результаты»
+/// закреплена сверху, вне прокрутки. Ячейки — картинки-карточки 100×100
 /// из `assets/score_screen/` (без ассета — подпись с полем). Сохраняет
 /// запись в формате v1 и переходит к истории. Верхнего бара нет (тикет
 /// 18): заголовок «Ввод очков» — в теле экрана, системное «назад»
@@ -55,9 +58,7 @@ const _generalAsset = 'assets/score_screen/general.PNG';
 /// (для игроков 2–4; у игрока 1 она приходит из партии).
 class _PlayerEntry {
   _PlayerEntry({required this.faction, required int cellCount})
-      : cells = [
-          for (var i = 0; i < cellCount; i++) TextEditingController(),
-        ];
+    : cells = [for (var i = 0; i < cellCount; i++) TextEditingController()];
 
   final TextEditingController name = TextEditingController();
   final List<TextEditingController> cells;
@@ -83,8 +84,11 @@ class _PlayerEntry {
 }
 
 class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
+  /// Максимум игроков на экране (тикет 21): Игрок 1 + 3 добавленных.
+  static const _maxPlayers = 4;
+
   late final _PlayerEntry _player1;
-  late final List<_PlayerEntry> _others;
+  final List<_PlayerEntry> _others = [];
   bool _saving = false;
 
   @override
@@ -94,9 +98,9 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
       faction: widget.factionName ?? '',
       cellCount: _categoryLabels.length,
     );
-    _others = [
-      for (var i = 0; i < 3; i++) _PlayerEntry(faction: '', cellCount: 1),
-    ];
+    // Тикет 21: изначально две секции — Игрок 1 и Игрок 2; Игроки 3–4
+    // добавляются кнопкой «Добавить игрока».
+    _others.add(_PlayerEntry(faction: '', cellCount: 1));
   }
 
   @override
@@ -106,6 +110,18 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
       entry.dispose();
     }
     super.dispose();
+  }
+
+  /// Можно ли добавить ещё одного игрока: секций меньше максимальных.
+  bool get _canAddPlayer => _others.length < _maxPlayers - 1;
+
+  /// «Добавить игрока»: следующая секция (Игрок 3, затем Игрок 4);
+  /// при максимуме игроков кнопка не показывается.
+  void _addPlayer() {
+    if (!_canAddPlayer) return;
+    setState(() {
+      _others.add(_PlayerEntry(faction: '', cellCount: 1));
+    });
   }
 
   /// Фракция игрока: выбранная, либо первая из каталога, если ещё не
@@ -121,7 +137,9 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
     void addPlayer(_PlayerEntry entry, String faction) {
       final name = entry.name.text.trim();
       if (name.isEmpty) return;
-      players.add(PlayerScore(playerName: name, score: entry.total, faction: faction));
+      players.add(
+        PlayerScore(playerName: name, score: entry.total, faction: faction),
+      );
     }
 
     addPlayer(_player1, _factionOf(_player1, catalog));
@@ -137,7 +155,9 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
 
     setState(() => _saving = true);
     final storage = await ref.read(gameRecordStorageProvider.future);
-    await storage.add(GameRecord(dateTime: DateTime.now(), playerScores: players));
+    await storage.add(
+      GameRecord(dateTime: DateTime.now(), playerScores: players),
+    );
     // История на экране записи кэшируется: после сохранения сбрасываем,
     // чтобы новая запись появилась при открытии истории.
     ref.invalidate(scoreHistoryProvider);
@@ -177,48 +197,76 @@ class _ScoreEntryScreenState extends ConsumerState<ScoreEntryScreen> {
   }
 
   Widget _buildBody(FactionCatalog catalog) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    // Тикет 21: заголовок и «Сохранить результаты» закреплены сверху
+    // (вне прокрутки); под ними скроллится список секций игроков.
+    return Column(
       children: [
-        Text('Ввод очков', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        _PlayerSection(
-          title: 'Игрок 1',
-          factionLabel: _factionOf(_player1, catalog),
-          lockedFaction: true,
-          entry: _player1,
-          nameKey: const ValueKey('p1-name'),
-          cellsKeys: [
-            for (var i = 0; i < 5; i++) ValueKey('p1-cell-$i'),
-          ],
-          assets: _categoryAssets,
-          sumKey: const ValueKey('p1-sum'),
-        ),
-        const SizedBox(height: 12),
-        for (var i = 0; i < _others.length; i++) ...[
-          _PlayerSection(
-            title: 'Игрок ${i + 2}',
-            factionLabel: _factionOf(_others[i], catalog),
-            factions: catalog.factions,
-            onFactionChanged: (value) {
-              setState(() => _others[i].faction = value);
-            },
-            entry: _others[i],
-            nameKey: ValueKey('p${i + 2}-name'),
-            cellsKeys: [ValueKey('p${i + 2}-cell-0')],
-            assets: const [_generalAsset],
-            factionKey: ValueKey('p${i + 2}-faction'),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Text(
+            'Ввод очков',
+            style: Theme.of(context).textTheme.titleLarge,
           ),
-          const SizedBox(height: 12),
-        ],
-        Center(
-          child: FilledButton(
-            onPressed: _saving ? null : () => _save(catalog),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Center(
+            child: FilledButton(
+              onPressed: _saving ? null : () => _save(catalog),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: const Text('Сохранить результаты'),
             ),
-            child: const Text('Сохранить результаты'),
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              _PlayerSection(
+                title: 'Игрок 1',
+                factionLabel: _factionOf(_player1, catalog),
+                lockedFaction: true,
+                entry: _player1,
+                nameKey: const ValueKey('p1-name'),
+                cellsKeys: [for (var i = 0; i < 5; i++) ValueKey('p1-cell-$i')],
+                assets: _categoryAssets,
+                sumKey: const ValueKey('p1-sum'),
+              ),
+              const SizedBox(height: 12),
+              for (var i = 0; i < _others.length; i++) ...[
+                _PlayerSection(
+                  title: 'Игрок ${i + 2}',
+                  factionLabel: _factionOf(_others[i], catalog),
+                  factions: catalog.factions,
+                  onFactionChanged: (value) {
+                    setState(() => _others[i].faction = value);
+                  },
+                  entry: _others[i],
+                  nameKey: ValueKey('p${i + 2}-name'),
+                  cellsKeys: [ValueKey('p${i + 2}-cell-0')],
+                  assets: const [_generalAsset],
+                  factionKey: ValueKey('p${i + 2}-faction'),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_canAddPlayer)
+                Center(
+                  child: OutlinedButton.icon(
+                    onPressed: _addPlayer,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Добавить игрока'),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -290,9 +338,11 @@ class _PlayerSection extends StatelessWidget {
                         child: Text(faction.name),
                       ),
                   ],
-                  onChanged: onFactionChanged == null ? null : (value) {
-                    if (value != null) onFactionChanged!(value);
-                  },
+                  onChanged: onFactionChanged == null
+                      ? null
+                      : (value) {
+                          if (value != null) onFactionChanged!(value);
+                        },
                 ),
               ),
             const SizedBox(height: 8),
@@ -428,8 +478,10 @@ class _ScoreCell extends StatelessWidget {
     required this.assetPath,
     this.controller,
     this.value,
-  }) : assert(controller != null || value != null,
-            'ячейка должна быть либо полем ввода, либо суммой');
+  }) : assert(
+         controller != null || value != null,
+         'ячейка должна быть либо полем ввода, либо суммой',
+       );
 
   final String label;
   final String assetPath;
