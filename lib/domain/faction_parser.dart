@@ -76,6 +76,7 @@ class FactionParser {
     'gamePart',
     'color',
     'background',
+    'description',
     'resources',
     'units',
     'modifiers',
@@ -114,6 +115,7 @@ class FactionParser {
     final gamePart = _readGamePart(json);
     final color = _readNonEmptyString(json, 'color', 'фракция');
     final background = _readNonEmptyString(json, 'background', 'фракция');
+    final description = _readNonEmptyString(json, 'description', 'фракция');
     final resources = _readResources(json);
     final units = _readUnits(json);
     final modifiers = _readModifiers(json, units);
@@ -125,6 +127,7 @@ class FactionParser {
       gamePart: gamePart,
       color: color,
       backgroundPath: background,
+      description: description,
       resources: resources,
       units: units,
       modifiers: modifiers,

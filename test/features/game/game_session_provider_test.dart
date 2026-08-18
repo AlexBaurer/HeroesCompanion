@@ -14,6 +14,7 @@ const _factionJson = '''
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Тестовая фракция.",
   "resources": ["Дерево", "Железо"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2},

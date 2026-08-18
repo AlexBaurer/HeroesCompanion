@@ -116,6 +116,14 @@ void main() {
       expect(names.toSet(), hasLength(18));
     });
 
+    test('у каждой фракции есть непустое описание (тикет 19)', () {
+      for (final file in _factionFiles) {
+        final faction = load(file);
+        expect(faction.description, isNotEmpty, reason: file);
+        expect(faction.description.trim(), isNotEmpty, reason: file);
+      }
+    });
+
     test('у каждой фракции есть ресурсы и фон в формате v1', () {
       for (final file in _factionFiles) {
         final faction = load(file);

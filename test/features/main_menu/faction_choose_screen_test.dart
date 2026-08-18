@@ -98,7 +98,7 @@ void main() {
     expect(find.text('Люди'), findsOneWidget);
   });
 
-  testWidgets('тап по плитке открывает экран партии с выбранной фракцией', (
+  testWidgets('тап по плитке открывает окно фракции, а не экран партии', (
     tester,
   ) async {
     await _openFactionChoose(tester);
@@ -106,6 +106,8 @@ void main() {
     await tester.tap(find.text('Тёмные эльфы'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Партия: Тёмные эльфы'), findsOneWidget);
+    expect(find.text(fakeDescriptions[16]), findsOneWidget);
+    expect(find.text('Начать игру'), findsOneWidget);
+    expect(find.textContaining('Партия:'), findsNothing);
   });
 }

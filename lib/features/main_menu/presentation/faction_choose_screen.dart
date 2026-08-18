@@ -120,7 +120,7 @@ class _FactionList extends StatelessWidget {
 
 /// Плитка на всю ширину экрана: фон — изображение фракции (cover),
 /// без ассета — сплошной цвет фракции; имя — слева по вертикали по
-/// центру с обводкой краёв букв. Тап — сразу на экран партии.
+/// центру с обводкой краёв букв. Тап — на окно фракции (тикет 19).
 class _FactionTile extends StatelessWidget {
   const _FactionTile({required this.faction});
 
@@ -132,7 +132,7 @@ class _FactionTile extends StatelessWidget {
       height: FactionChooseScreen.tileHeight,
       width: double.infinity,
       child: InkWell(
-        onTap: () => context.push('/faction/${faction.name}'),
+        onTap: () => context.push('/faction_preview/${faction.name}'),
         child: Stack(
           fit: StackFit.expand,
           children: [

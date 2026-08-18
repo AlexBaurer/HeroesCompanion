@@ -3,6 +3,7 @@
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Владеют сильными и относительно дешёвыми войсками. Людьми можно легко и эффективно управлять.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2},

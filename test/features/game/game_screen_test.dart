@@ -19,6 +19,7 @@ const _richFactionJson = '''
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Тестовая фракция с богатыми юнитами.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2},
@@ -38,6 +39,7 @@ const _elfFactionJson = '''
   "gamePart": 1,
   "color": "#732EB4",
   "background": "assets/faction_background/elfs_low.PNG",
+  "description": "Фракция с лавкой бронника.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1},
@@ -61,6 +63,7 @@ String _factionJson(int index) {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Тестовая фракция номер $index.",
   "resources": ["Дерево"],
   "units": [{"id": "u$index", "name": "Юнит", "power": 1}]
 }
@@ -101,6 +104,10 @@ Future<ProviderContainer> _openGameScreen(
   await tester.tap(find.text('Начать игру'));
   await tester.pumpAndSettle();
   await tester.tap(find.text(factionName));
+  await tester.pumpAndSettle();
+  // Тикет 19: тап по плитке открывает окно фракции, «Начать игру» —
+  // экран партии.
+  await tester.tap(find.text('Начать игру'));
   await tester.pumpAndSettle();
   return container;
 }

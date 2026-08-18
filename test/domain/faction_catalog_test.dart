@@ -8,6 +8,7 @@ Faction _faction(String name, int gamePart) {
     gamePart: gamePart,
     color: '#BE5737',
     backgroundPath: 'assets/faction_background/humans_low.PNG',
+    description: 'Тестовое описание фракции.',
     resources: const ['Дерево'],
     units: const [Unit(id: 'u', name: 'Юнит', basePower: 1)],
   );

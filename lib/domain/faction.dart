@@ -46,6 +46,7 @@ class Faction {
     required this.gamePart,
     required this.color,
     required this.backgroundPath,
+    required this.description,
     required this.resources,
     required this.units,
     this.modifiers = const [],
@@ -57,6 +58,10 @@ class Faction {
   final int gamePart;
   final String color;
   final String backgroundPath;
+
+  /// Краткое описание фракции (2–3 предложения) — показывается в окне
+  /// фракции перед переходом в партию.
+  final String description;
   final List<String> resources;
   final List<Unit> units;
   final List<StrengthModifier> modifiers;

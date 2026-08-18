@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/game/presentation/game_screen.dart';
 import '../features/main_menu/presentation/faction_choose_screen.dart';
+import '../features/main_menu/presentation/faction_preview_screen.dart';
 import '../features/main_menu/presentation/main_menu_screen.dart';
 import '../features/scores/presentation/score_entry_screen.dart';
 import '../features/scores/presentation/score_history_screen.dart';
@@ -13,6 +14,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/faction_choose',
       builder: (context, state) => const FactionChooseScreen(),
+    ),
+    GoRoute(
+      path: '/faction_preview/:factionName',
+      builder: (context, state) {
+        return FactionPreviewScreen(
+          factionName: state.pathParameters['factionName']!,
+        );
+      },
     ),
     GoRoute(
       path: '/faction/:factionName',

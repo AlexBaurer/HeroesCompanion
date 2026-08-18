@@ -3,6 +3,7 @@
   "gamePart": 1,
   "color": "#732EB4",
   "background": "assets/faction_background/elfs_low.PNG",
+  "description": "Усиливают свои войска грифонами и энтами. Способны получать артефакты за древесину, что облегчает им доступ к выгодным способностям.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1},

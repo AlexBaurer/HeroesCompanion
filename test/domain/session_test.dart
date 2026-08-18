@@ -20,6 +20,7 @@ Faction _faction({
     gamePart: 1,
     color: '#000000',
     backgroundPath: 'assets/faction_background/test.png',
+    description: 'Тестовая фракция.',
     resources: resources ?? const ['Дерево', 'Железо', 'Золото'],
     units: units ?? _regularUnits,
     modifiers: modifiers,
@@ -51,6 +52,7 @@ Faction _elfFaction() {
     gamePart: 1,
     color: '#732EB4',
     backgroundPath: 'assets/faction_background/elfs_low.PNG',
+    description: 'Усиливают свои войска грифонами и энтами.',
     resources: ['Дерево', 'Железо', 'Золото'],
     units: [
       Unit(id: 'pixi', name: 'Пикси', basePower: 1),
@@ -502,6 +504,7 @@ void main() {
         gamePart: 1,
         color: '#732EB4',
         backgroundPath: 'assets/faction_background/elfs_low.PNG',
+        description: 'Усиливают свои войска грифонами и энтами.',
         resources: ['Дерево'],
         units: [Unit(id: 'ent', name: 'Энт', basePower: 6)],
         modifiers: [ToggleModifier(unitId: 'ent', bonusPower: 8)],

@@ -23,6 +23,7 @@ String _factionJson(int index) {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Тестовая фракция.",
   "resources": ["Дерево"],
   "units": [{"id": "u$index", "name": "Юнит", "power": 1}]
 }

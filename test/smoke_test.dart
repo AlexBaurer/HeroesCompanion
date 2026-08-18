@@ -46,6 +46,13 @@ void main() {
     await tester.tap(find.text('Тёмные эльфы'));
     await tester.pumpAndSettle();
 
+    // Тикет 19: плитка ведёт на окно фракции, «Начать игру» — на партию.
+    expect(find.text(fakeDescriptions[16]), findsOneWidget);
+    expect(find.textContaining('Партия:'), findsNothing);
+
+    await tester.tap(find.text('Начать игру'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Партия: Тёмные эльфы'), findsOneWidget);
   });
 }

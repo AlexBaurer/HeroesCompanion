@@ -9,6 +9,7 @@ const _humansJson = '''
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Владеют сильными и относительно дешёвыми войсками.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2},
@@ -29,6 +30,7 @@ const _elementalsJson = '''
   "gamePart": 2,
   "color": "#F44336",
   "background": "assets/faction_background/elementals_low.PNG",
+  "description": "Поглощают силу осколков Сердца.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "zefira", "name": "Зефира", "power": 2},
@@ -133,6 +135,7 @@ void main() {
   "gamePart": 1,
   "color": "#088AAA",
   "background": "assets/faction_background/necros_low.PNG",
+  "description": "Способна воскрешать павших воинов.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "skeleton", "name": "Скелет", "power": 1},
@@ -162,6 +165,7 @@ void main() {
   "gamePart": 3,
   "color": "#3949AB",
   "background": "assets/faction_background/archons_low.PNG",
+  "description": "Их здания уже построены.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "obvinitel", "name": "Обвинитель", "power": 1},
@@ -196,6 +200,7 @@ void main() {
   "gamePart": 2,
   "color": "#00C6D4",
   "background": "assets/faction_background/nags_low.PNG",
+  "description": "Водные существа краки служат им и воинами, и ресурсами.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "kraken", "name": "Краки", "power": 1}
@@ -216,6 +221,7 @@ void main() {
   "gamePart": 2,
   "color": "#00C6D4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "kraken", "name": "Краки", "power": 1}
@@ -241,6 +247,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "assets/faction_background/elfs_low.PNG",
+  "description": "Усиливают свои войска грифонами и энтами.",
   "resources": ["Дерево", "Железо", "Золото"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1},
@@ -278,6 +285,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1}
@@ -306,6 +314,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1}
@@ -334,6 +343,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1}
@@ -362,6 +372,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1}
@@ -390,6 +401,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1}
@@ -418,6 +430,7 @@ void main() {
   "gamePart": 1,
   "color": "#732EB4",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "pixi", "name": "Пикси", "power": 1}
@@ -436,6 +449,102 @@ void main() {
         throwsA(
           isA<FactionUnknownFieldException>()
               .having((e) => e.field, 'field', 'cost'),
+        ),
+      );
+    });
+  });
+
+  group('description: краткое описание фракции', () {
+    test('непустая строка разбирается в Faction.description', () {
+      const json = '''
+{
+  "name": "Люди",
+  "gamePart": 1,
+  "color": "#BE5737",
+  "background": "b",
+  "description": "Владеют сильными и относительно дешёвыми войсками.",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "soldier", "name": "Солдат", "power": 2}
+  ]
+}
+''';
+
+      final faction = parse(json);
+
+      expect(
+        faction.description,
+        'Владеют сильными и относительно дешёвыми войсками.',
+      );
+    });
+
+    test('отсутствует → FactionMissingFieldException', () {
+      const json = '''
+{
+  "name": "Люди",
+  "gamePart": 1,
+  "color": "#BE5737",
+  "background": "b",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "soldier", "name": "Солдат", "power": 2}
+  ]
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionMissingFieldException>()
+              .having((e) => e.field, 'field', 'description'),
+        ),
+      );
+    });
+
+    test('пустая строка → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Люди",
+  "gamePart": 1,
+  "color": "#BE5737",
+  "background": "b",
+  "description": "",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "soldier", "name": "Солдат", "power": 2}
+  ]
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'description'),
+        ),
+      );
+    });
+
+    test('не строка → FactionInvalidValueException', () {
+      const json = '''
+{
+  "name": "Люди",
+  "gamePart": 1,
+  "color": "#BE5737",
+  "background": "b",
+  "description": 42,
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "soldier", "name": "Солдат", "power": 2}
+  ]
+}
+''';
+
+      expect(
+        () => parse(json),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'description'),
         ),
       );
     });
@@ -463,6 +572,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "assets/faction_background/humans_low.PNG",
+  "description": "Владеют сильными и относительно дешёвыми войсками.",
   "resources": ["Дерево", "Железо", "Золото"],
   "unitCount": 3,
   "units": [
@@ -487,6 +597,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2, "bonus": 3}
@@ -510,6 +621,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "power": 2}
@@ -533,6 +645,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": "2"}
@@ -556,6 +669,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": -1}
@@ -573,6 +687,7 @@ void main() {
   "gamePart": 4,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2}
@@ -596,6 +711,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": []
 }
@@ -617,6 +733,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2},
@@ -641,6 +758,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2}
@@ -667,6 +785,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2}
@@ -693,6 +812,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2}
@@ -719,6 +839,7 @@ void main() {
   "gamePart": 1,
   "color": "#BE5737",
   "background": "b",
+  "description": "Тестовое описание фракции.",
   "resources": ["Дерево"],
   "units": [
     {"id": "soldier", "name": "Солдат", "power": 2}
