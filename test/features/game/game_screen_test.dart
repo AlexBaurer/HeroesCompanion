@@ -533,6 +533,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Тестовая'), findsOneWidget);
+    // Плитка на экране выбора осталась раскрытой (тикет 22: состояние
+    // переживает кругосветку выбор → партия → назад).
+    expect(
+      find.text('Тестовая фракция с богатыми юнитами.'),
+      findsOneWidget,
+    );
     expect(find.text('Текущий раунд: 1'), findsNothing);
   });
 }
