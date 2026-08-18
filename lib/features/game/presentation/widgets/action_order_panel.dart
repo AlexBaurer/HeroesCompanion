@@ -123,7 +123,7 @@ class ActionOrderPanel extends ConsumerWidget {
 }
 
 /// Ячейка порядка действий в стиле v1: карточка с картинкой действия
-/// на всю ширину; при отсутствии ассета — иконка действия.
+/// по центру плитки (~32px); при отсутствии ассета — иконка действия.
 class _ActionSlot extends StatelessWidget {
   const _ActionSlot({super.key, required this.action});
 
@@ -137,13 +137,15 @@ class _ActionSlot extends StatelessWidget {
       borderOnForeground: false,
       child: SizedBox(
         height: 55,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            actionIconPaths[action]!,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Center(
-              child: Icon(
+        child: Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              actionIconPaths[action]!,
+              width: 32,
+              height: 32,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Icon(
                 _actionIconFallback(action),
                 color: theme.colorScheme.onSurfaceVariant,
                 size: 20,
