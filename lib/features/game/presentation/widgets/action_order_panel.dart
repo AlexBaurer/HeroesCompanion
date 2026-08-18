@@ -146,7 +146,7 @@ class _ActionSlot extends StatelessWidget {
               child: Icon(
                 _actionIconFallback(action),
                 color: theme.colorScheme.onSurfaceVariant,
-                size: 28,
+                size: 20,
               ),
             ),
           ),
