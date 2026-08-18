@@ -113,7 +113,7 @@ void main() {
     expect(find.textContaining('Партия:'), findsNothing);
   });
 
-  testWidgets('картинка гаснет в белый за 10px на всю ширину плитки', (
+  testWidgets('картинка гаснет в белый за 80px на всю ширину плитки', (
     tester,
   ) async {
     await _openFactionChoose(tester);
@@ -122,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Полоса перехода между плиткой и панелью: на всю ширину плитки,
-    // высота 10px, градиент от прозрачного (картинка видна — без шва
+    // высота 80px, градиент от прозрачного (картинка видна — без шва
     // с плиткой) к полностью белому (без просвечивания и отделения).
     final fade = tester.widget<DecoratedBox>(
       find.byKey(const ValueKey('faction-fade')),
@@ -136,7 +136,7 @@ void main() {
       find.byKey(const ValueKey('faction-fade')),
     );
     expect(box.size.width, 1200);
-    expect(box.size.height, 10);
+    expect(box.size.height, 80);
   });
 
   testWidgets(
