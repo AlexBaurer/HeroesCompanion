@@ -229,48 +229,108 @@ class _FactionTile extends StatelessWidget {
 /// Панель раскрытой плитки: полупрозрачная поверхность со скруглением,
 /// внутри — краткое описание фракции и кнопка «Выбрать» (цвет фракции,
 /// контрастный текст). Стиль — как у окна фракции (тикет 19), подпись
-/// кнопки «Начать игру» заменена на «Выбрать» (тикет 22).
+/// кнопки «Начать игру» заменена на «Выбрать» (тикет 22). В верхней
+/// части панели продолжается фоновая картинка плитки (тот же кадр, что
+/// и на плитке) и гаснет градиентом в цвет панели — картинка «вливается»
+/// в панель; текст и кнопка лежат на белой части.
 class _ExpandedPanel extends StatelessWidget {
   const _ExpandedPanel({required this.faction});
 
   final Faction faction;
 
+  /// Высота зоны вверху панели, где картинка гаснет градиентом в белый;
+  /// ниже — сплошной цвет панели с текстом и кнопкой.
+  static const _fadeHeight = 48.0;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final background = colorFromHex(faction.color);
+    // Цвет панели — как раньше (тикет 19); в него уходит градиент картинки.
+    final panelColor = theme.colorScheme.surface.withValues(alpha: 0.85);
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.85),
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Text(
-            faction.description,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface,
+          // Продолжение фоновой картинки плитки: тот же кадр (тот же
+          // сдвиг и запас, что в плитке), сдвинутый вниз на высоту
+          // плитки; кадр шире панели на 16px с каждой стороны, чтобы
+          // центрированный cover-кроп совпадал с плиткой, — клип панели
+          // обрезает края. Без ассета — сплошной цвет фракции.
+          Positioned(
+            top:
+                FactionChooseScreen.backgroundShiftY -
+                FactionChooseScreen._backgroundOverflow -
+                FactionChooseScreen.tileHeight,
+            left: -16,
+            right: -16,
+            height:
+                FactionChooseScreen.tileHeight +
+                2 * FactionChooseScreen._backgroundOverflow,
+            child: Image.asset(
+              faction.backgroundPath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  ColoredBox(color: background),
             ),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => context.push('/faction/${faction.name}'),
-              style: FilledButton.styleFrom(
-                backgroundColor: background,
-                foregroundColor: contrastingForeground(background),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          // Градиент: за первые [_fadeHeight] пикселей картинка гаснет
+          // в цвет панели, дальше — сплошной цвет панели (скрывает
+          // оставшуюся часть картинки под текстом).
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final fade = (_fadeHeight / constraints.maxHeight)
+                    .clamp(0.0, 1.0)
+                    .toDouble();
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, panelColor, panelColor],
+                      stops: [0, fade, 1],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, _fadeHeight, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  faction.description,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
-              ),
-              child: const Text('Выбрать'),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => context.push('/faction/${faction.name}'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: background,
+                      foregroundColor: contrastingForeground(background),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    child: const Text('Выбрать'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

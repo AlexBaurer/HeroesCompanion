@@ -65,21 +65,22 @@ void main() {
     expect(nextTopLeft.dy - topLeft.dy, FactionChooseScreen.tileHeight);
   });
 
-  testWidgets('нет верхнего бара: AppBar, «назад» и заголовок убраны; плитки от верха', (
-    tester,
-  ) async {
-    await _openFactionChoose(tester);
+  testWidgets(
+    'нет верхнего бара: AppBar, «назад» и заголовок убраны; плитки от верха',
+    (tester) async {
+      await _openFactionChoose(tester);
 
-    expect(find.byType(AppBar), findsNothing);
-    expect(find.byType(BackButton), findsNothing);
-    expect(find.text('Выбери фракцию'), findsNothing);
+      expect(find.byType(AppBar), findsNothing);
+      expect(find.byType(BackButton), findsNothing);
+      expect(find.text('Выбери фракцию'), findsNothing);
 
-    final firstTile = find.ancestor(
-      of: find.text('Люди'),
-      matching: find.byType(InkWell),
-    );
-    expect(tester.getTopLeft(firstTile).dy, 0);
-  });
+      final firstTile = find.ancestor(
+        of: find.text('Люди'),
+        matching: find.byType(InkWell),
+      );
+      expect(tester.getTopLeft(firstTile).dy, 0);
+    },
+  );
 
   testWidgets('без ассета фона — сплошной цвет фракции и имя плитки', (
     tester,
@@ -110,6 +111,32 @@ void main() {
     expect(find.text('Выбрать'), findsOneWidget);
     expect(find.text('Начать игру'), findsNothing);
     expect(find.textContaining('Партия:'), findsNothing);
+  });
+
+  testWidgets('в развёрнутой панели картинка гаснет градиентом в белый', (
+    tester,
+  ) async {
+    await _openFactionChoose(tester);
+
+    await tester.tap(find.text('Люди'));
+    await tester.pumpAndSettle();
+
+    // Панель описания: поверх картинки лежит градиент от прозрачного
+    // (картинка видна) к цвету панели (белый) — картинка «вливается»
+    // в панель.
+    final fade = tester.widget<DecoratedBox>(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text(fakeDescriptions[0]),
+          matching: find.byType(Stack),
+        ),
+        matching: find.byType(DecoratedBox),
+      ),
+    );
+    final gradient =
+        (fade.decoration as BoxDecoration).gradient as LinearGradient;
+    expect(gradient.colors.first, Colors.transparent);
+    expect(gradient.colors.last, isNot(Colors.transparent));
   });
 
   testWidgets(
