@@ -244,7 +244,7 @@ class _ExpandedPanel extends StatelessWidget {
   final Faction faction;
 
   /// Высота полосы перехода: картинка гаснет в белый очень резко.
-  static const _fadeHeight = 10.0;
+  static const _fadeHeight = 80.0;
 
   @override
   Widget build(BuildContext context) {
