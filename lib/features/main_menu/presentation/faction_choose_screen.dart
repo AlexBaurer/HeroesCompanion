@@ -281,6 +281,9 @@ class _ExpandedPanel extends StatelessWidget {
               ),
               Positioned.fill(
                 child: DecoratedBox(
+                  // Ключ — для виджет-тестов: полоса перехода одна,
+                  // остальные DecoratedBox'ы (кнопки) — из Material.
+                  key: const ValueKey('faction-fade'),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,

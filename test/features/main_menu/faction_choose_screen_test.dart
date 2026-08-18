@@ -124,13 +124,17 @@ void main() {
     // Полоса перехода между плиткой и панелью: на всю ширину плитки,
     // высота 10px, градиент от прозрачного (картинка видна — без шва
     // с плиткой) к полностью белому (без просвечивания и отделения).
-    final fade = tester.widget<DecoratedBox>(find.byType(DecoratedBox));
+    final fade = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('faction-fade')),
+    );
     final gradient =
         (fade.decoration as BoxDecoration).gradient as LinearGradient;
     expect(gradient.colors.first, Colors.transparent);
     expect(gradient.colors.last.a, 1.0);
 
-    final box = tester.renderObject<RenderBox>(find.byType(DecoratedBox));
+    final box = tester.renderObject<RenderBox>(
+      find.byKey(const ValueKey('faction-fade')),
+    );
     expect(box.size.width, 1200);
     expect(box.size.height, 10);
   });
@@ -146,7 +150,14 @@ void main() {
 
       // На середине анимации бокс AnimatedSize уже на всю ширину, растёт
       // только высота — картинка и полоса не расползаются из центра.
-      final anim = tester.renderObject<RenderBox>(find.byType(AnimatedSize));
+      // AnimatedSize есть у каждой плитки, поэтому берём тот, что
+      // содержит раскрытую полосу (единственный предок-анимация).
+      final anim = tester.renderObject<RenderBox>(
+        find.ancestor(
+          of: find.byKey(const ValueKey('faction-fade')),
+          matching: find.byType(AnimatedSize),
+        ),
+      );
       expect(anim.size.width, 1200);
       expect(anim.size.height, greaterThan(0));
 
