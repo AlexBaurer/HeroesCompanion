@@ -101,10 +101,15 @@ Future<void> _addPlayers(WidgetTester tester, int count) async {
   }
 }
 
-/// Текст поля ввода по ключу (ячейка подсчёта или имя игрока).
+/// Текст поля ввода по ключу (ячейка подсчёта или имя игрока): у ячеек
+/// ключ на обёртке, у имён — прямо на TextField (matchRoot).
 String _fieldText(WidgetTester tester, Key fieldKey) {
   final field = tester.widget<TextField>(
-    find.descendant(of: find.byKey(fieldKey), matching: find.byType(TextField)),
+    find.descendant(
+      of: find.byKey(fieldKey),
+      matching: find.byType(TextField),
+      matchRoot: true,
+    ),
   );
   return field.controller!.text;
 }
