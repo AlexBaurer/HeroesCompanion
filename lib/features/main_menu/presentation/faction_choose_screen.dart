@@ -212,14 +212,20 @@ class _FactionTile extends StatelessWidget {
         ),
         // Панель описания раскрывается под плиткой с анимацией высоты:
         // свернутая плитка не занимает места (SizedBox.shrink), раскрытая
-        // раздвигает следующие за ней плитки вниз.
-        AnimatedSize(
-          duration: _expandDuration,
-          curve: Curves.easeInOut,
-          alignment: Alignment.topCenter,
-          child: expanded
-              ? _ExpandedPanel(faction: faction)
-              : const SizedBox.shrink(),
+        // раздвигает следующие за ней плитки вниз. AnimatedSize растянут
+        // на всю ширину: иначе колонка даёт ему свободную ширину и он
+        // анимирует и её (0 → ширина) — картинка росла бы из центра
+        // в стороны, а не сверху вниз.
+        SizedBox(
+          width: double.infinity,
+          child: AnimatedSize(
+            duration: _expandDuration,
+            curve: Curves.easeInOut,
+            alignment: Alignment.topCenter,
+            child: expanded
+                ? _ExpandedPanel(faction: faction)
+                : const SizedBox.shrink(),
+          ),
         ),
       ],
     );

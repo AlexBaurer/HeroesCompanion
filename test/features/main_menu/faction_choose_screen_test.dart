@@ -136,6 +136,25 @@ void main() {
   });
 
   testWidgets(
+    'раскрытие идёт сверху вниз: в середине анимации ширина уже полная',
+    (tester) async {
+      await _openFactionChoose(tester);
+
+      await tester.tap(find.text('Люди'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 125));
+
+      // На середине анимации бокс AnimatedSize уже на всю ширину, растёт
+      // только высота — картинка и полоса не расползаются из центра.
+      final anim = tester.renderObject<RenderBox>(find.byType(AnimatedSize));
+      expect(anim.size.width, 1200);
+      expect(anim.size.height, greaterThan(0));
+
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
     'раскрыта одна плитка: тап по другой переключает, повторный сворачивает',
     (tester) async {
       await _openFactionChoose(tester);
