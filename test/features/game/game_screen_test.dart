@@ -184,10 +184,13 @@ void main() {
     expect(before.levelOf(GameAction.wood), 0);
 
     // Длинное нажатие поднимает ячейку, сдвиг вниз — в соседнюю позицию.
+    // 140px — больше половины карточки (55 + отступы 6×2 = 67px) плюс
+    // половина второй карточки: только так onReorder отдаёт реальный
+    // сдвиг на один слот (при 90px «сырой» индекс вставки даёт no-op).
     final firstCell = find.byKey(const ValueKey(GameAction.wood));
     final gesture = await tester.startGesture(tester.getCenter(firstCell));
     await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
-    await gesture.moveBy(const Offset(0, 90));
+    await gesture.moveBy(const Offset(0, 140));
     await tester.pump();
     await gesture.up();
     await tester.pumpAndSettle();
