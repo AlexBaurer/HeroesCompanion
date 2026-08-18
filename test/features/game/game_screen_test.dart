@@ -1,12 +1,15 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:heroescompanion/app/app_router.dart';
+import 'package:heroescompanion/domain/action_order.dart';
 import 'package:heroescompanion/domain/strength_modifier.dart';
 import 'package:heroescompanion/features/factions/data/faction_providers.dart';
 import 'package:heroescompanion/features/factions/data/faction_repository.dart';
 import 'package:heroescompanion/features/game/data/game_session_provider.dart';
+import 'package:heroescompanion/features/game/presentation/widgets/action_order_panel.dart';
 import 'package:heroescompanion/features/game/presentation/widgets/resource_counter_wheel.dart';
 import 'package:heroescompanion/main.dart';
 
@@ -129,6 +132,72 @@ void main() {
     expect(find.text('МОДИФИКАТОРЫ СИЛЫ'), findsOneWidget);
     expect(find.text('Солдат'), findsWidgets);
     expect(find.text('Латник'), findsWidgets);
+  });
+
+  testWidgets(
+    'панель порядка действий: картинки и номера 1–4, без названий и «ручки»',
+    (tester) async {
+      await _openGameScreen(tester);
+
+      final panel = find.byType(ActionOrderPanel);
+      expect(panel, findsOneWidget);
+      // 5 карточек с картинкой действия; номера уровней 1–4 поверх
+      // списка, пятая ячейка (невыбранное действие) — без номера.
+      expect(
+        find.descendant(of: panel, matching: find.byType(Image)),
+        findsNWidgets(5),
+      );
+      for (var level = 1; level <= 4; level++) {
+        expect(
+          find.descendant(of: panel, matching: find.text('$level')),
+          findsOneWidget,
+        );
+      }
+      expect(
+        find.descendant(of: panel, matching: find.text('5')),
+        findsNothing,
+      );
+      // Названий действий и иконки-«двух горизонтальных чёрточек» нет.
+      for (final name in const [
+        'Дерево',
+        'Железо',
+        'Золото',
+        'Перемещение',
+        'Строительство',
+      ]) {
+        expect(
+          find.descendant(of: panel, matching: find.text(name)),
+          findsNothing,
+        );
+      }
+      expect(find.byIcon(Icons.drag_handle), findsNothing);
+    },
+  );
+
+  testWidgets('перетаскивание ячейки применяет новый порядок к сессии', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester);
+    final before = container.read(gameSessionProvider('Тестовая')).actionOrder;
+    // Свежая сессия: порядок не задан (уровни 0) — панель показывает
+    // естественный порядок, применяемый к сессии первым перетаскиванием.
+    expect(before.levelOf(GameAction.wood), 0);
+
+    // Длинное нажатие поднимает ячейку, сдвиг вниз — в соседнюю позицию.
+    final firstCell = find.byKey(const ValueKey(GameAction.wood));
+    final gesture = await tester.startGesture(tester.getCenter(firstCell));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    await gesture.moveBy(const Offset(0, 90));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final after = container.read(gameSessionProvider('Тестовая')).actionOrder;
+    // Дерево ушло из первой ячейки на одну позицию вниз: порядок
+    // применён к сессии, первые 4 ячейки получили уровни 1–4.
+    expect(after.isComplete, isTrue);
+    expect(after.levelOf(GameAction.iron), 1);
+    expect(after.levelOf(GameAction.wood), 2);
   });
 
   testWidgets('сила армии пересчитывается при изменении счётчиков', (
@@ -364,10 +433,7 @@ void main() {
       expect(session.battleUpgradePaidWood, 2);
       expect(session.battleUpgradeSelectedUnits, ['grifon', 'ent']);
       expect(session.deployedArmyStrength, 26);
-      expect(
-        find.text('Эффект применён: оплачено 2 Дерево'),
-        findsOneWidget,
-      );
+      expect(find.text('Эффект применён: оплачено 2 Дерево'), findsOneWidget);
 
       // Живой пересчёт: сила в бой видна и за модалкой, и в секции.
       expect(find.text('Сила в бой: 26'), findsWidgets);
@@ -379,10 +445,7 @@ void main() {
 
       await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Эффект применён: оплачено 2 Дерево'),
-        findsOneWidget,
-      );
+      expect(find.text('Эффект применён: оплачено 2 Дерево'), findsOneWidget);
 
       // Новый раунд сбрасывает эффект и «в бой» без возврата дерева.
       await tester.tapAt(const Offset(600, 30));

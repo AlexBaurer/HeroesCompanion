@@ -7,7 +7,7 @@ import 'package:heroescompanion/domain/session.dart';
 import '../../data/game_session_provider.dart';
 
 /// Иконка действия (пути ассетов как в v1). Пользователь готовит
-/// изображения сам; при отсутствии показывается название действия.
+/// изображения сам; при отсутствии показывается иконка действия.
 const actionIconPaths = <GameAction, String>{
   GameAction.wood: 'assets/wood.PNG',
   GameAction.iron: 'assets/iron.PNG',
@@ -16,17 +16,11 @@ const actionIconPaths = <GameAction, String>{
   GameAction.build: 'assets/build.PNG',
 };
 
-const actionNames = <GameAction, String>{
-  GameAction.wood: 'Дерево',
-  GameAction.iron: 'Железо',
-  GameAction.gold: 'Золото',
-  GameAction.move: 'Перемещение',
-  GameAction.build: 'Строительство',
-};
-
-/// Порядок действий раунда: 5 ячеек-перестановка, первые 4 получают
-/// уровни 1–4, пятая — невыбранное действие. Перетаскивание применяет
-/// новый порядок к сессии.
+/// Порядок действий раунда в стиле v1: 5 ячеек-карточек только с картинкой
+/// действия, номера уровней 1–4 фиксированным слоем поверх списка слева
+/// (пятая ячейка — невыбранное действие, без номера). Перетаскивание
+/// применяет новый порядок к сессии; при зажатии ячейка подсвечивается
+/// зелёным свечением.
 class ActionOrderPanel extends ConsumerWidget {
   const ActionOrderPanel({super.key, required this.factionName});
 
@@ -36,24 +30,77 @@ class ActionOrderPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(gameSessionProvider(factionName));
     final slots = _slotsFor(session);
-    return ReorderableListView(
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) {
-          newIndex--;
-        }
-        final next = List<GameAction>.of(slots);
-        final item = next.removeAt(oldIndex);
-        next.insert(newIndex, item);
-        ref
-            .read(gameSessionProvider(factionName).notifier)
-            .applyActionOrder(next);
-      },
+    return Stack(
       children: [
-        for (var i = 0; i < slots.length; i++)
-          _ActionSlot(
-            key: ValueKey(slots[i]),
-            level: i < GameAction.values.length - 1 ? i + 1 : null,
-            action: slots[i],
+        ReorderableListView(
+          onReorder: (oldIndex, newIndex) {
+            if (newIndex > oldIndex) {
+              newIndex--;
+            }
+            final next = List<GameAction>.of(slots);
+            final item = next.removeAt(oldIndex);
+            next.insert(newIndex, item);
+            ref
+                .read(gameSessionProvider(factionName).notifier)
+                .applyActionOrder(next);
+          },
+          proxyDecorator:
+              (Widget child, int index, Animation<double> animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (BuildContext context, Widget? child) {
+                    final animValue = Curves.easeInOut.transform(
+                      animation.value,
+                    );
+                    return Transform.scale(
+                      scale: 1.0 + animValue * 0.05,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF4CAF50,
+                              ).withValues(alpha: 0.7),
+                              blurRadius: 8.0,
+                              spreadRadius: 2.0,
+                            ),
+                          ],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: child,
+                );
+              },
+          children: [
+            for (final action in slots)
+              _ActionSlot(key: ValueKey(action), action: action),
+          ],
+        ),
+        // Номера уровней 1–4 поверх списка, как в v1 (карточка 55px +
+        // вертикальные отступы 6px = шаг 67px); пятая ячейка номера
+        // не получает.
+        for (var i = 0; i < slots.length - 1; i++)
+          Positioned(
+            left: 20,
+            top: 10.0 + i * 67.0,
+            child: Text(
+              '${i + 1}',
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset.zero,
+                    blurRadius: 20,
+                    color: Colors.black,
+                  ),
+                ],
+              ),
+            ),
           ),
       ],
     );
@@ -75,79 +122,35 @@ class ActionOrderPanel extends ConsumerWidget {
   }
 }
 
+/// Ячейка порядка действий в стиле v1: карточка с картинкой действия
+/// на всю ширину; при отсутствии ассета — иконка действия.
 class _ActionSlot extends StatelessWidget {
-  const _ActionSlot({super.key, required this.level, required this.action});
+  const _ActionSlot({super.key, required this.action});
 
-  /// Уровень 1–4 или null для «невыбранной» ячейки.
-  final int? level;
   final GameAction action;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 28,
-            child: level == null
-                ? null
-                : Text(
-                    '$level',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      shadows: [Shadow(blurRadius: 12, color: Colors.black)],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-          ),
-          Expanded(
-            child: Container(
-              height: 52,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.7,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 52,
-                    child: Image.asset(
-                      actionIconPaths[action]!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: Icon(
-                          _actionIconFallback(action),
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      actionNames[action]!,
-                      style: theme.textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(
-                    Icons.drag_handle,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                ],
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      borderOnForeground: false,
+      child: SizedBox(
+        height: 55,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            actionIconPaths[action]!,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Center(
+              child: Icon(
+                _actionIconFallback(action),
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 28,
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
