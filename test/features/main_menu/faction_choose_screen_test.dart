@@ -113,7 +113,7 @@ void main() {
     expect(find.textContaining('Партия:'), findsNothing);
   });
 
-  testWidgets('в развёрнутой панели картинка гаснет градиентом в белый', (
+  testWidgets('картинка гаснет в белый за 10px на всю ширину плитки', (
     tester,
   ) async {
     await _openFactionChoose(tester);
@@ -121,22 +121,18 @@ void main() {
     await tester.tap(find.text('Люди'));
     await tester.pumpAndSettle();
 
-    // Панель описания: поверх картинки лежит градиент от прозрачного
-    // (картинка видна) к цвету панели (белый) — картинка «вливается»
-    // в панель.
-    final fade = tester.widget<DecoratedBox>(
-      find.descendant(
-        of: find.ancestor(
-          of: find.text(fakeDescriptions[0]),
-          matching: find.byType(Stack),
-        ),
-        matching: find.byType(DecoratedBox),
-      ),
-    );
+    // Полоса перехода между плиткой и панелью: на всю ширину плитки,
+    // высота 10px, градиент от прозрачного (картинка видна — без шва
+    // с плиткой) к полностью белому (без просвечивания и отделения).
+    final fade = tester.widget<DecoratedBox>(find.byType(DecoratedBox));
     final gradient =
         (fade.decoration as BoxDecoration).gradient as LinearGradient;
     expect(gradient.colors.first, Colors.transparent);
-    expect(gradient.colors.last, isNot(Colors.transparent));
+    expect(gradient.colors.last.a, 1.0);
+
+    final box = tester.renderObject<RenderBox>(find.byType(DecoratedBox));
+    expect(box.size.width, 1200);
+    expect(box.size.height, 10);
   });
 
   testWidgets(
