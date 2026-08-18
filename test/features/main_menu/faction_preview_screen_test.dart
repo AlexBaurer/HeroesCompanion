@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heroescompanion/app/app_router.dart';
 import 'package:heroescompanion/app/color_hex.dart';
 import 'package:heroescompanion/features/factions/data/faction_providers.dart';
-import 'package:heroescompanion/features/main_menu/presentation/faction_choose_screen.dart';
 import 'package:heroescompanion/main.dart';
 
 import '../../helpers/fake_faction_repository.dart';

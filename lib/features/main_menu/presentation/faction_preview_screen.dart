@@ -120,7 +120,7 @@ class _FactionPreview extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface.withValues(alpha: 0.85),
-                      borderRadius: const BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       faction.description,
