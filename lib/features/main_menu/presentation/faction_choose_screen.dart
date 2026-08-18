@@ -99,20 +99,43 @@ class _LoadError extends StatelessWidget {
 
 /// Один скролл, все 18 фракций подряд в порядке каталога (части 1→3),
 /// без заголовков секций, отступов и разделителей. Плитки начинаются
-/// от верха безопасной зоны (тикет 17: верхнего бара нет).
-class _FactionList extends StatelessWidget {
+/// от верха безопасной зоны (тикет 17: верхнего бара нет). Раскрыта
+/// может быть одна плитка (тикет 22): тап по плитке раскрывает под ней
+/// описание и «Выбрать», тап по другой — переключает, повторный —
+/// сворачивает.
+class _FactionList extends StatefulWidget {
   const _FactionList({required this.factions});
 
   final List<Faction> factions;
+
+  @override
+  State<_FactionList> createState() => _FactionListState();
+}
+
+class _FactionListState extends State<_FactionList> {
+  /// Имя раскрытой фракции; null — все плитки свёрнуты.
+  String? _expandedFaction;
+
+  void _toggle(String name) {
+    setState(() {
+      _expandedFaction = _expandedFaction == name ? null : name;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: true,
       child: ListView.builder(
-        itemCount: factions.length,
-        itemBuilder: (context, index) =>
-            _FactionTile(faction: factions[index]),
+        itemCount: widget.factions.length,
+        itemBuilder: (context, index) {
+          final faction = widget.factions[index];
+          return _FactionTile(
+            faction: faction,
+            expanded: _expandedFaction == faction.name,
+            onTap: () => _toggle(faction.name),
+          );
+        },
       ),
     );
   }
@@ -120,54 +143,137 @@ class _FactionList extends StatelessWidget {
 
 /// Плитка на всю ширину экрана: фон — изображение фракции (cover),
 /// без ассета — сплошной цвет фракции; имя — слева по вертикали по
-/// центру с обводкой краёв букв. Тап — на окно фракции (тикет 19).
+/// центру с обводкой краёв букв. Тап раскрывает под плиткой панель
+/// с описанием и «Выбрать» (тикет 22); раскрытая плитка раздвигает
+/// следующие за ней вниз.
 class _FactionTile extends StatelessWidget {
-  const _FactionTile({required this.faction});
+  const _FactionTile({
+    required this.faction,
+    required this.expanded,
+    required this.onTap,
+  });
+
+  final Faction faction;
+
+  /// Плитка раскрыта: под ней показана панель с описанием.
+  final bool expanded;
+
+  /// Тап по плитке: раскрыть (если свёрнута) или свернуть (если раскрыта).
+  final VoidCallback onTap;
+
+  /// Продолжительность анимации раздвижения плитки.
+  static const _expandDuration = Duration(milliseconds: 250);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: FactionChooseScreen.tileHeight,
+          width: double.infinity,
+          child: InkWell(
+            onTap: onTap,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Фон с запасом по вертикали: сдвиг картинки (backgroundShiftY)
+                // не открывает края плитки — край уходит за пределы клипа.
+                Positioned(
+                  top:
+                      FactionChooseScreen.backgroundShiftY -
+                      FactionChooseScreen._backgroundOverflow,
+                  left: 0,
+                  right: 0,
+                  height:
+                      FactionChooseScreen.tileHeight +
+                      2 * FactionChooseScreen._backgroundOverflow,
+                  child: Image.asset(
+                    faction.backgroundPath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        ColoredBox(color: colorFromHex(faction.color)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Text(
+                      faction.name,
+                      style: FactionChooseScreen.strokedTextStyle(
+                        fontSize: FactionChooseScreen.tileNameFontSize,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Панель описания раскрывается под плиткой с анимацией высоты:
+        // свернутая плитка не занимает места (SizedBox.shrink), раскрытая
+        // раздвигает следующие за ней плитки вниз.
+        AnimatedSize(
+          duration: _expandDuration,
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: expanded
+              ? _ExpandedPanel(faction: faction)
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+/// Панель раскрытой плитки: полупрозрачная поверхность со скруглением,
+/// внутри — краткое описание фракции и кнопка «Выбрать» (цвет фракции,
+/// контрастный текст). Стиль — как у окна фракции (тикет 19), подпись
+/// кнопки «Начать игру» заменена на «Выбрать» (тикет 22).
+class _ExpandedPanel extends StatelessWidget {
+  const _ExpandedPanel({required this.faction});
 
   final Faction faction;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: FactionChooseScreen.tileHeight,
+    final theme = Theme.of(context);
+    final background = colorFromHex(faction.color);
+    return Container(
       width: double.infinity,
-      child: InkWell(
-        onTap: () => context.push('/faction_preview/${faction.name}'),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Фон с запасом по вертикали: сдвиг картинки (backgroundShiftY)
-            // не открывает края плитки — край уходит за пределы клипа.
-            Positioned(
-              top:
-                  FactionChooseScreen.backgroundShiftY -
-                  FactionChooseScreen._backgroundOverflow,
-              left: 0,
-              right: 0,
-              height:
-                  FactionChooseScreen.tileHeight +
-                  2 * FactionChooseScreen._backgroundOverflow,
-              child: Image.asset(
-                faction.backgroundPath,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    ColoredBox(color: colorFromHex(faction.color)),
-              ),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            faction.description,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Text(
-                  faction.name,
-                  style: FactionChooseScreen.strokedTextStyle(
-                    fontSize: FactionChooseScreen.tileNameFontSize,
-                  ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => context.push('/faction/${faction.name}'),
+              style: FilledButton.styleFrom(
+                backgroundColor: background,
+                foregroundColor: contrastingForeground(background),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+              child: const Text('Выбрать'),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

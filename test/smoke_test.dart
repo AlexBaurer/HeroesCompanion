@@ -46,11 +46,12 @@ void main() {
     await tester.tap(find.text('Тёмные эльфы'));
     await tester.pumpAndSettle();
 
-    // Тикет 19: плитка ведёт на окно фракции, «Начать игру» — на партию.
+    // Тикет 22: тап по плитке раскрывает описание под плиткой,
+    // «Выбрать» — на экран партии.
     expect(find.text(fakeDescriptions[16]), findsOneWidget);
     expect(find.textContaining('Партия:'), findsNothing);
 
-    await tester.tap(find.text('Начать игру'));
+    await tester.tap(find.text('Выбрать'));
     await tester.pumpAndSettle();
 
     expect(find.text('Партия: Тёмные эльфы'), findsOneWidget);

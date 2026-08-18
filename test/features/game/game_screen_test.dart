@@ -108,9 +108,9 @@ Future<ProviderContainer> _openGameScreen(
   await tester.pumpAndSettle();
   await tester.tap(find.text(factionName));
   await tester.pumpAndSettle();
-  // Тикет 19: тап по плитке открывает окно фракции, «Начать игру» —
+  // Тикет 22: тап по плитке раскрывает описание под ней, «Выбрать» —
   // экран партии.
-  await tester.tap(find.text('Начать игру'));
+  await tester.tap(find.text('Выбрать'));
   await tester.pumpAndSettle();
   return container;
 }

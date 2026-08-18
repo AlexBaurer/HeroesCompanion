@@ -98,7 +98,7 @@ void main() {
     expect(find.text('Люди'), findsOneWidget);
   });
 
-  testWidgets('тап по плитке открывает окно фракции, а не экран партии', (
+  testWidgets('тап по плитке раскрывает под ней описание и «Выбрать»', (
     tester,
   ) async {
     await _openFactionChoose(tester);
@@ -107,7 +107,48 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(fakeDescriptions[16]), findsOneWidget);
-    expect(find.text('Начать игру'), findsOneWidget);
+    expect(find.text('Выбрать'), findsOneWidget);
+    expect(find.text('Начать игру'), findsNothing);
     expect(find.textContaining('Партия:'), findsNothing);
+  });
+
+  testWidgets(
+    'раскрыта одна плитка: тап по другой переключает, повторный сворачивает',
+    (tester) async {
+      await _openFactionChoose(tester);
+
+      await tester.tap(find.text('Люди'));
+      await tester.pumpAndSettle();
+      expect(find.text(fakeDescriptions[0]), findsOneWidget);
+      expect(find.text(fakeDescriptions[16]), findsNothing);
+
+      // Тап по другой плитке: раскрытая сворачивается, новая раскрывается.
+      await tester.tap(find.text('Тёмные эльфы'));
+      await tester.pumpAndSettle();
+      expect(find.text(fakeDescriptions[16]), findsOneWidget);
+      expect(find.text(fakeDescriptions[0]), findsNothing);
+      expect(find.text('Выбрать'), findsOneWidget);
+
+      // Повторный тап по раскрытой плитке сворачивает её.
+      await tester.tap(find.text('Тёмные эльфы'));
+      await tester.pumpAndSettle();
+      expect(find.text(fakeDescriptions[16]), findsNothing);
+      expect(find.text('Выбрать'), findsNothing);
+    },
+  );
+
+  testWidgets('«Выбрать» ведёт на экран партии с выбранной фракцией', (
+    tester,
+  ) async {
+    await _openFactionChoose(tester);
+
+    await tester.tap(find.text('Люди'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Выбрать'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Партия: Люди'), findsOneWidget);
+    expect(find.text('Текущий раунд: 1'), findsOneWidget);
+    expect(find.text(fakeDescriptions[0]), findsNothing);
   });
 }
