@@ -110,10 +110,15 @@ class _UniqueUnitsGrid extends ConsumerWidget {
   }
 }
 
-/// Вертикальный сдвиг картинки юнита в карточке Гриболюдов (px) — подстройка
-/// кадра под конкретный ассет. Положительный — вниз, отрицательный — вверх.
-/// Меняй здесь, чтобы подогнать картинки под свой арт.
+/// Вертикальный сдвиг кадра картинки юнита внутри плитки Гриболюдов (px) —
+/// подстройка кадра под конкретный ассет. Положительный — кадр уходит вниз
+/// (видна нижняя часть арта), отрицательный — вверх. Меняй здесь, чтобы
+/// подогнать картинки под свой арт.
 const double _uniqueUnitImageDy = 30;
+
+/// Высота картинки внутри плитки — заведомо больше плитки, чтобы кадр
+/// можно было двигать по вертикали ([_uniqueUnitImageDy]) без просветов.
+const double _uniqueUnitImageHeight = 160;
 
 /// Карточка уникального юнита: картинка на всю ячейку, имя — оверлеем
 /// снизу с белой обводкой (читается и на светлых, и на тёмных картинках).
@@ -146,9 +151,23 @@ class _UniqueUnitCard extends ConsumerWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Transform.translate(
-                offset: const Offset(0, _uniqueUnitImageDy),
-                child: _UnitImage(unit: unit, showPlaceholderName: false),
+              // Картинка выше плитки (панорамируемый кадр): OverflowBox
+              // выпускает её за границы, Transform сдвигает кадр по вертикали,
+              // ClipRect обрезает по плитке. Просветов нет, пока сдвиг в
+              // пределах (±высота−плитка)/2.
+              ClipRect(
+                child: OverflowBox(
+                  alignment: Alignment.center,
+                  maxHeight: double.infinity,
+                  child: Transform.translate(
+                    offset: const Offset(0, _uniqueUnitImageDy),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: _uniqueUnitImageHeight,
+                      child: _UnitImage(unit: unit, showPlaceholderName: false),
+                    ),
+                  ),
+                ),
               ),
               Positioned(
                 left: 4,
