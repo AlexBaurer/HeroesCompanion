@@ -10,6 +10,7 @@ import 'package:heroescompanion/features/factions/data/faction_providers.dart';
 import 'package:heroescompanion/features/factions/data/faction_repository.dart';
 import 'package:heroescompanion/features/game/data/game_session_provider.dart';
 import 'package:heroescompanion/features/game/presentation/widgets/action_order_panel.dart';
+import 'package:heroescompanion/features/game/presentation/widgets/army_block_panel.dart';
 import 'package:heroescompanion/features/game/presentation/widgets/resource_counter_wheel.dart';
 import 'package:heroescompanion/main.dart';
 
@@ -562,9 +563,17 @@ void main() {
     // Бейдж только «Сила в бой» — общей силы армии у фракции нет.
     expect(find.text('Сила в бой: 0'), findsOneWidget);
     expect(find.textContaining('Сила армии'), findsNothing);
-    // Сетка на 12 юнитов (4 ряда × 3 колонки), без колёсиков.
+    // Сетка на 12 юнитов (4 ряда × 3 колонки), колёсиков армии нет —
+    // колёсики ресурсов (4 ресурса Гриболюдов) на месте.
     expect(find.byKey(const ValueKey('unique-units-grid')), findsOneWidget);
-    expect(find.byType(ResourceCounterWheel), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(ArmyBlockPanel),
+        matching: find.byType(ResourceCounterWheel),
+      ),
+      findsNothing,
+    );
+    expect(find.byType(ResourceCounterWheel), findsNWidgets(4));
     for (final id in const [
       'shlyapnik',
       'gribovoy',
