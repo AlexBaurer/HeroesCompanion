@@ -27,7 +27,10 @@ class ArmyBlockPanel extends ConsumerWidget {
     final faction = session.faction;
     final uniqueUnits = faction.uniqueUnits;
     return Container(
-      height: uniqueUnits ? 380 : 210,
+      // Для uniqueUnits высота определяется сеткой (без фиксированной —
+      // иначе панель сжимает ресурсы и порядок действий); обычным фракциям
+      // нужна фиксированная высота под ленту с колёсиками.
+      height: uniqueUnits ? null : 210,
       decoration: BoxDecoration(
         color: colorFromHex(faction.color).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
@@ -51,18 +54,19 @@ class ArmyBlockPanel extends ConsumerWidget {
               ],
             ),
           ),
-          Expanded(
-            child: uniqueUnits
-                ? _UniqueUnitsGrid(factionName: factionName)
-                : ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    children: [
-                      for (final unit in faction.units)
-                        _UnitCard(factionName: factionName, unit: unit),
-                    ],
-                  ),
-          ),
+          if (uniqueUnits)
+            _UniqueUnitsGrid(factionName: factionName)
+          else
+            Expanded(
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                children: [
+                  for (final unit in faction.units)
+                    _UnitCard(factionName: factionName, unit: unit),
+                ],
+              ),
+            ),
         ],
       ),
     );
