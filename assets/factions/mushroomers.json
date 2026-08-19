@@ -7,18 +7,18 @@
   "resources": ["Дерево", "Железо", "Золото", "Грибной ресурс"],
   "uniqueUnits": true,
   "units": [
-    {"id": "shlyapnik", "name": "Шляпник", "power": 2},
-    {"id": "gribovoy", "name": "Грибовой", "power": 2},
-    {"id": "lisider", "name": "Лисидер", "power": 2},
-    {"id": "mitcemant", "name": "Мицемант", "power": 6},
-    {"id": "gruzdar", "name": "Груздарь", "power": 6},
-    {"id": "infektor", "name": "Инфектор", "power": 6},
+    {"id": "arhytoks", "name": "Архитокс", "power": 10},
+    {"id": "gnilord", "name": "Гнилорд", "power": 10},
+    {"id": "tlenitel", "name": "Тленитель", "power": 10},
     {"id": "sporonosets", "name": "Спороносец", "power": 8},
     {"id": "muhostrel", "name": "Мухострел", "power": 8},
     {"id": "kordiarh", "name": "Кордиарх", "power": 8},
-    {"id": "arhytoks", "name": "Архитокс", "power": 10},
-    {"id": "gnilord", "name": "Гнилорд", "power": 10},
-    {"id": "tlenitel", "name": "Тленитель", "power": 10}
+    {"id": "mitcemant", "name": "Мицемант", "power": 6},
+    {"id": "gruzdar", "name": "Груздарь", "power": 6},
+    {"id": "infektor", "name": "Инфектор", "power": 6},
+    {"id": "shlyapnik", "name": "Шляпник", "power": 2},
+    {"id": "gribovoy", "name": "Грибовой", "power": 2},
+    {"id": "lisider", "name": "Лисидер", "power": 2}
   ],
   "modifiers": [
     {"unit": "shlyapnik", "type": "toggle", "bonusPower": 4},

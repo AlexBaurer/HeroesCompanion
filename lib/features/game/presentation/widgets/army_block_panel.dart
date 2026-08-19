@@ -77,8 +77,8 @@ class _UniqueUnitsGrid extends ConsumerWidget {
 
   final String factionName;
 
-  static const _spacing = 8.0;
-  static const _cellHeight = 76.0;
+  static const _spacing = 2.0;
+  static const _cellHeight = 56.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
