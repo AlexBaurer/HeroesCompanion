@@ -201,7 +201,7 @@ class _UniqueUnitCard extends ConsumerWidget {
 
 /// Стиль имени юнита на картинке: тёмный текст с белой обводкой (8 теней
 /// по периметру) — читается на любом фоне картинки.
-final _outlinedNameStyle = TextStyle(
+const _outlinedNameStyle = TextStyle(
   color: Color(0xDD000000),
   fontSize: 11,
   fontWeight: FontWeight.w600,
@@ -223,12 +223,10 @@ final _outlinedNameStyle = TextStyle(
 class _UnitImage extends StatelessWidget {
   const _UnitImage({
     required this.unit,
-    this.fontSize = 12,
     this.showPlaceholderName = true,
   });
 
   final Unit unit;
-  final double fontSize;
   final bool showPlaceholderName;
 
   @override
@@ -244,7 +242,7 @@ class _UnitImage extends StatelessWidget {
             ? Text(
                 unit.name,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: fontSize),
+                style: const TextStyle(fontSize: 12),
               )
             : null,
       ),
