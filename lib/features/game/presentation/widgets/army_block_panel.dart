@@ -110,6 +110,11 @@ class _UniqueUnitsGrid extends ConsumerWidget {
   }
 }
 
+/// Вертикальный сдвиг картинки юнита в карточке Гриболюдов (px) — подстройка
+/// кадра под конкретный ассет. Положительный — вниз, отрицательный — вверх.
+/// Меняй здесь, чтобы подогнать картинки под свой арт.
+const double _uniqueUnitImageDy = 30;
+
 /// Карточка уникального юнита: картинка на всю ячейку, имя — оверлеем
 /// снизу с белой обводкой (читается и на светлых, и на тёмных картинках).
 /// Выбранный юнит обводится цветом фракции и получает галочку.
@@ -141,7 +146,10 @@ class _UniqueUnitCard extends ConsumerWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              _UnitImage(unit: unit, showPlaceholderName: false),
+              Transform.translate(
+                offset: const Offset(0, _uniqueUnitImageDy),
+                child: _UnitImage(unit: unit, showPlaceholderName: false),
+              ),
               Positioned(
                 left: 4,
                 right: 4,
