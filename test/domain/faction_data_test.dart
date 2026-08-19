@@ -254,7 +254,7 @@ void main() {
   group('коробка 3 (чтение rules3.pdf)', () {
     test('Оборотни: Одичалый 2, Волхв 4, Ярл 4; волчья ночь — переключатели', () {
       final faction = load('werewolves.json');
-      expect(faction.resources, contains('Мясо'));
+      expect(faction.resources, ['Дерево', 'Железо', 'Золото', 'Мясо']);
       expect(
         faction.units.map((u) => (u.name, u.basePower)).toList(),
         [('Одичалый', 2), ('Волхв', 4), ('Ярл', 4)],
@@ -320,9 +320,10 @@ void main() {
       );
     });
 
-    test('Циклопы: Охотник 7, Пастырь 4 (→6), Саблезуб 1; ресурс «Подковы»', () {
+    test('Циклопы: Охотник 7, Пастырь 4 (→6), Саблезуб 1; без «Подков» (тикет 24)', () {
       final faction = load('cyclops.json');
-      expect(faction.resources, contains('Подковы'));
+      expect(faction.resources, ['Дерево', 'Железо', 'Золото']);
+      expect(faction.resources, isNot(contains('Подковы')));
       expect(
         faction.units.map((u) => (u.name, u.basePower)).toList(),
         [('Охотник', 7), ('Пастырь', 4), ('Саблезуб', 1)],
@@ -335,7 +336,7 @@ void main() {
 
     test('Гриболюды: 12 зданий-воинов, Архитокс и Тленитель силой 10', () {
       final faction = load('mushroomers.json');
-      expect(faction.resources, contains('Грибной ресурс'));
+      expect(faction.resources, ['Дерево', 'Железо', 'Золото', 'Грибной ресурс']);
       expect(faction.units, hasLength(12));
       expect(faction.unitById('arhytoks')?.basePower, 10);
       expect(faction.unitById('tlenitel')?.basePower, 10);

@@ -7,6 +7,10 @@ const resourceIconPaths = <String, String>{
   'Железо': 'assets/iron.PNG',
   'Золото': 'assets/gold.PNG',
   'Ярость': 'assets/fury.PNG',
+  // Тикет 24: «Грибной ресурс» переиспользует иконку строительства
+  // (как в v1), «Мясо» — свой ассет на компе сборки.
+  'Грибной ресурс': 'assets/build.PNG',
+  'Мясо': 'assets/meat.PNG',
 };
 
 /// Колёсико-счётчик значений 0–[maxValue] (по умолчанию 99, как в v1):

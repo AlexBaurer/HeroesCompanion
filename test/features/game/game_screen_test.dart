@@ -91,10 +91,42 @@ const _mushroomerFactionJson = '''
 }
 ''';
 
+/// Фракция Оборотней (тикет 24): фракционный ресурс «Мясо».
+const _werewolfFactionJson = '''
+{
+  "name": "Оборотни",
+  "gamePart": 3,
+  "color": "#37474F",
+  "background": "assets/faction_background/werewolves_low.PNG",
+  "description": "Платят войскам только свежим мясом.",
+  "resources": ["Дерево", "Железо", "Золото", "Мясо"],
+  "units": [
+    {"id": "odichaly", "name": "Одичалый", "power": 2}
+  ]
+}
+''';
+
+/// Фракция Циклопов (тикет 24): три базовых ресурса, «Подков» нет.
+const _cyclopsFactionJson = '''
+{
+  "name": "Циклопы",
+  "gamePart": 3,
+  "color": "#00897B",
+  "background": "assets/faction_background/cyclops_low.PNG",
+  "description": "Их сопровождает яростное стадо.",
+  "resources": ["Дерево", "Железо", "Золото"],
+  "units": [
+    {"id": "okhotnik", "name": "Охотник", "power": 7}
+  ]
+}
+''';
+
 String _factionJson(int index) {
   if (index == 0) return _richFactionJson;
   if (index == 1) return _elfFactionJson;
   if (index == 12) return _mushroomerFactionJson;
+  if (index == 13) return _werewolfFactionJson;
+  if (index == 17) return _cyclopsFactionJson;
   return '''
 {
   "name": "Тестовая $index",
@@ -691,6 +723,53 @@ void main() {
 
     expect(find.text('Текущий раунд: 2'), findsOneWidget);
     expect(find.text('Сила в бой: 0'), findsOneWidget);
+  });
+
+  testWidgets('Гриболюды (тикет 24): «Грибной ресурс» получает иконку, подпись исчезает', (
+    tester,
+  ) async {
+    await _openGameScreen(tester, factionName: 'Гриболюды');
+
+    // Фракционному ресурсу задана иконка строительства; подпись-название
+    // под колёсиком больше не выводится (тикет 24).
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is ResourceCounterWheel && w.iconPath == 'assets/build.PNG',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Грибной ресурс'), findsNothing);
+  });
+
+  testWidgets('Оборотни (тикет 24): «Мясо» получает иконку, подпись исчезает', (
+    tester,
+  ) async {
+    await _openGameScreen(tester, factionName: 'Оборотни');
+
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is ResourceCounterWheel && w.iconPath == 'assets/meat.PNG',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Мясо'), findsNothing);
+  });
+
+  testWidgets('Циклопы (тикет 24): ровно три ресурса с иконками, «Подков» нет', (
+    tester,
+  ) async {
+    await _openGameScreen(tester, factionName: 'Циклопы');
+
+    // Ровно три базовых ресурса (все с иконками; колёсики армии иконок
+    // не имеют и в панели армии). «Подковы» нигде не показываются —
+    // подпись появилась бы, если бы у ресурса не было иконки.
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is ResourceCounterWheel && w.iconPath != null,
+      ),
+      findsNWidgets(3),
+    );
+    expect(find.text('Подковы'), findsNothing);
   });
 
   testWidgets('обычная фракция: лента с крутилками и оба бейджа без изменений', (
