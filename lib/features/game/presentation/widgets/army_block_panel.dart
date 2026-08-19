@@ -110,8 +110,9 @@ class _UniqueUnitsGrid extends ConsumerWidget {
   }
 }
 
-/// Карточка уникального юнита: картинка (или серая плашка с именем) и
-/// подпись. Выбранный юнит обводится цветом фракции и получает галочку.
+/// Карточка уникального юнита: картинка на всю ячейку, имя — оверлеем
+/// снизу с белой обводкой (читается и на светлых, и на тёмных картинках).
+/// Выбранный юнит обводится цветом фракции и получает галочку.
 class _UniqueUnitCard extends ConsumerWidget {
   const _UniqueUnitCard({required this.factionName, required this.unit});
 
@@ -127,57 +128,81 @@ class _UniqueUnitCard extends ConsumerWidget {
     return GestureDetector(
       key: ValueKey('unique-unit-${unit.id}'),
       onTap: () => notifier.toggleDeployed(unit.id),
-      child: Column(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: selected ? accent : Colors.transparent,
-                  width: 3,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selected ? accent : Colors.transparent,
+            width: 3,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _UnitImage(unit: unit, showPlaceholderName: false),
+              Positioned(
+                left: 4,
+                right: 4,
+                bottom: 2,
+                child: Text(
+                  unit.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _outlinedNameStyle,
                 ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _UnitImage(unit: unit, fontSize: 11),
-                    if (selected)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Icon(
-                          Icons.check_circle,
-                          color: accent,
-                          size: 18,
-                        ),
-                      ),
-                  ],
+              if (selected)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Icon(
+                    Icons.check_circle,
+                    color: accent,
+                    size: 18,
+                  ),
                 ),
-              ),
-            ),
+            ],
           ),
-          Text(
-            unit.name,
-            style: Theme.of(context).textTheme.labelSmall,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
+/// Стиль имени юнита на картинке: тёмный текст с белой обводкой (8 теней
+/// по периметру) — читается на любом фоне картинки.
+final _outlinedNameStyle = TextStyle(
+  color: Color(0xDD000000),
+  fontSize: 11,
+  fontWeight: FontWeight.w600,
+  shadows: [
+    Shadow(offset: Offset(-1.5, -1.5), color: Colors.white),
+    Shadow(offset: Offset(1.5, -1.5), color: Colors.white),
+    Shadow(offset: Offset(-1.5, 1.5), color: Colors.white),
+    Shadow(offset: Offset(1.5, 1.5), color: Colors.white),
+    Shadow(offset: Offset(-1.5, 0), color: Colors.white),
+    Shadow(offset: Offset(1.5, 0), color: Colors.white),
+    Shadow(offset: Offset(0, -1.5), color: Colors.white),
+    Shadow(offset: Offset(0, 1.5), color: Colors.white),
+  ],
+);
+
 /// Картинка юнита из ассета `assets/units/<id>.PNG`; при отсутствии
-/// ассета (или в тестах) — серая плашка с именем юнита.
+/// ассета (или в тестах) — серая плашка. Имя юнита плашка показывает
+/// только там, где оно не выводится отдельным оверлеем ([showPlaceholderName]).
 class _UnitImage extends StatelessWidget {
-  const _UnitImage({required this.unit, this.fontSize = 12});
+  const _UnitImage({
+    required this.unit,
+    this.fontSize = 12,
+    this.showPlaceholderName = true,
+  });
 
   final Unit unit;
   final double fontSize;
+  final bool showPlaceholderName;
 
   @override
   Widget build(BuildContext context) {
@@ -188,11 +213,13 @@ class _UnitImage extends StatelessWidget {
         color: const Color.fromARGB(60, 226, 226, 226),
         alignment: Alignment.center,
         padding: const EdgeInsets.all(4),
-        child: Text(
-          unit.name,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: fontSize),
-        ),
+        child: showPlaceholderName
+            ? Text(
+                unit.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: fontSize),
+              )
+            : null,
       ),
     );
   }

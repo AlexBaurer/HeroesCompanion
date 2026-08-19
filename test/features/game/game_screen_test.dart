@@ -590,6 +590,23 @@ void main() {
     ]) {
       expect(find.byKey(ValueKey('unique-unit-$id')), findsOneWidget);
     }
+    // Имя юнита — оверлей на карточке (на картинке), а не подпись под ней:
+    // плашка-фолбэк имя не дублирует, в дереве имя ровно одно.
+    const namedUnits = {
+      'shlyapnik': 'Шляпник',
+      'arhytoks': 'Архитокс',
+      'tlenitel': 'Тленитель',
+    };
+    namedUnits.forEach((id, name) {
+      expect(find.text(name), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('unique-unit-$id')),
+          matching: find.text(name),
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('Гриболюды (тикет 23): тап заявляет юнита «в бой», повторный — снимает', (
