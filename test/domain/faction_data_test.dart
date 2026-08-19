@@ -149,6 +149,17 @@ void main() {
         }
       }
     });
+
+    test('uniqueUnits (тикет 23): true у Гриболюдов, false у остальных', () {
+      for (final file in _factionFiles) {
+        final faction = load(file);
+        if (file == 'mushroomers.json') {
+          expect(faction.uniqueUnits, isTrue, reason: file);
+        } else {
+          expect(faction.uniqueUnits, isFalse, reason: file);
+        }
+      }
+    });
   });
 
   group('коробки 1–2 совпадают с данными v1', () {

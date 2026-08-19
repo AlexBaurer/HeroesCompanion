@@ -81,6 +81,7 @@ class FactionParser {
     'units',
     'modifiers',
     'armyPower',
+    'uniqueUnits',
     'battleUpgrade',
   };
   static const _unitFields = {'id', 'name', 'power'};
@@ -120,6 +121,7 @@ class FactionParser {
     final units = _readUnits(json);
     final modifiers = _readModifiers(json, units);
     final armyPower = _readArmyPower(json);
+    final uniqueUnits = _readOptionalBool(json, 'uniqueUnits', 'фракция');
     final battleUpgrade = _readBattleUpgrade(json, units, resources);
 
     return Faction(
@@ -132,6 +134,7 @@ class FactionParser {
       units: units,
       modifiers: modifiers,
       armyPowerFormula: armyPower,
+      uniqueUnits: uniqueUnits,
       battleUpgrade: battleUpgrade,
     );
   }
@@ -400,6 +403,29 @@ class FactionParser {
     });
 
     return BattleUpgrade(resource: resource, limit: limit, powers: powers);
+  }
+
+  /// Опциональный boolean-флаг фракции (например `uniqueUnits`);
+  /// отсутствие поля — [fallback].
+  bool _readOptionalBool(
+    Map<String, dynamic> json,
+    String field,
+    String path, {
+    bool fallback = false,
+  }) {
+    if (!json.containsKey(field)) {
+      return fallback;
+    }
+    final value = json[field];
+    if (value is! bool) {
+      throw FactionInvalidValueException(
+        field: field,
+        path: path,
+        reason: 'должно быть boolean',
+        value: value,
+      );
+    }
+    return value;
   }
 
   /// Шаг счётчика — произвольное целое: положительный усиливает силу

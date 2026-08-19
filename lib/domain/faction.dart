@@ -51,6 +51,7 @@ class Faction {
     required this.units,
     this.modifiers = const [],
     this.armyPowerFormula = ArmyPowerFormula.perUnit,
+    this.uniqueUnits = false,
     this.battleUpgrade,
   });
 
@@ -66,6 +67,12 @@ class Faction {
   final List<Unit> units;
   final List<StrengthModifier> modifiers;
   final ArmyPowerFormula armyPowerFormula;
+
+  /// Фракция с уникальными воинами (Гриболюды): по одному воину каждого
+  /// типа, поэтому счётчиков «всего» и «в бой» нет — в партии моделируется
+  /// только заявка «в бой» (0/1 тапом по карточке юнита), общая сила
+  /// армии не участвует.
+  final bool uniqueUnits;
 
   /// Здание «Лавка бронника» — признак особой механики (как `armyPower`);
   /// есть только у эльфов.

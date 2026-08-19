@@ -57,9 +57,43 @@ const _elfFactionJson = '''
 }
 ''';
 
+/// Фракция Гриболюдов (тикет 23): uniqueUnits — сетка 4×3 вместо крутилок,
+/// 12 юнитов, три toggle-модификатора по +4.
+const _mushroomerFactionJson = '''
+{
+  "name": "Гриболюды",
+  "gamePart": 3,
+  "color": "#6D4C41",
+  "background": "assets/faction_background/mushroomers_low.PNG",
+  "description": "Их здания являются их же воинами.",
+  "resources": ["Дерево", "Железо", "Золото", "Грибной ресурс"],
+  "units": [
+    {"id": "shlyapnik", "name": "Шляпник", "power": 2},
+    {"id": "gribovoy", "name": "Грибовой", "power": 2},
+    {"id": "lisider", "name": "Лисидер", "power": 2},
+    {"id": "mitcemant", "name": "Мицемант", "power": 6},
+    {"id": "gruzdar", "name": "Груздарь", "power": 6},
+    {"id": "infektor", "name": "Инфектор", "power": 6},
+    {"id": "sporonosets", "name": "Спороносец", "power": 8},
+    {"id": "muhostrel", "name": "Мухострел", "power": 8},
+    {"id": "kordiarh", "name": "Кордиарх", "power": 8},
+    {"id": "arhytoks", "name": "Архитокс", "power": 10},
+    {"id": "gnilord", "name": "Гнилорд", "power": 10},
+    {"id": "tlenitel", "name": "Тленитель", "power": 10}
+  ],
+  "modifiers": [
+    {"unit": "shlyapnik", "type": "toggle", "bonusPower": 4},
+    {"unit": "gribovoy", "type": "toggle", "bonusPower": 4},
+    {"unit": "lisider", "type": "toggle", "bonusPower": 4}
+  ],
+  "uniqueUnits": true
+}
+''';
+
 String _factionJson(int index) {
   if (index == 0) return _richFactionJson;
   if (index == 1) return _elfFactionJson;
+  if (index == 12) return _mushroomerFactionJson;
   return '''
 {
   "name": "Тестовая $index",
@@ -518,6 +552,130 @@ void main() {
       ),
     );
     expect(pixiTile.onChanged, isNull);
+  });
+
+  testWidgets('Гриболюды (тикет 23): сетка 4×3 без крутилок и без «Сила армии»', (
+    tester,
+  ) async {
+    await _openGameScreen(tester, factionName: 'Гриболюды');
+
+    // Бейдж только «Сила в бой» — общей силы армии у фракции нет.
+    expect(find.text('Сила в бой: 0'), findsOneWidget);
+    expect(find.textContaining('Сила армии'), findsNothing);
+    // Сетка на 12 юнитов (4 ряда × 3 колонки), без колёсиков.
+    expect(find.byKey(const ValueKey('unique-units-grid')), findsOneWidget);
+    expect(find.byType(ResourceCounterWheel), findsNothing);
+    for (final id in const [
+      'shlyapnik',
+      'gribovoy',
+      'lisider',
+      'mitcemant',
+      'gruzdar',
+      'infektor',
+      'sporonosets',
+      'muhostrel',
+      'kordiarh',
+      'arhytoks',
+      'gnilord',
+      'tlenitel',
+    ]) {
+      expect(find.byKey(ValueKey('unique-unit-$id')), findsOneWidget);
+    }
+  });
+
+  testWidgets('Гриболюды (тикет 23): тап заявляет юнита «в бой», повторный — снимает', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester, factionName: 'Гриболюды');
+    final session = container.read(gameSessionProvider('Гриболюды'));
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-shlyapnik')));
+    await tester.pump();
+
+    expect(session.armyDeployed('shlyapnik'), 1);
+    expect(find.text('Сила в бой: 2'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-arhytoks')));
+    await tester.pump();
+
+    expect(session.armyDeployed('arhytoks'), 1);
+    expect(find.text('Сила в бой: 12'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-shlyapnik')));
+    await tester.pump();
+
+    expect(session.armyDeployed('shlyapnik'), 0);
+    expect(find.text('Сила в бой: 10'), findsOneWidget);
+  });
+
+  testWidgets('Гриболюды (тикет 23): выбранный юнит подсвечивается галочкой', (
+    tester,
+  ) async {
+    await _openGameScreen(tester, factionName: 'Гриболюды');
+
+    expect(find.byIcon(Icons.check_circle), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-shlyapnik')));
+    await tester.pump();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('unique-unit-shlyapnik')),
+        matching: find.byIcon(Icons.check_circle),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-shlyapnik')));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.check_circle), findsNothing);
+  });
+
+  testWidgets('Гриболюды (тикет 23): модификатор меняет силу «в бой»', (
+    tester,
+  ) async {
+    final container = await _openGameScreen(tester, factionName: 'Гриболюды');
+    final session = container.read(gameSessionProvider('Гриболюды'));
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-shlyapnik')));
+    await tester.pump();
+    expect(find.text('Сила в бой: 2'), findsOneWidget);
+
+    await tester.tap(find.text('МОДИФИКАТОРЫ СИЛЫ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Увеличить силу юнита (Шляпник): 2 → 4'));
+    await tester.pumpAndSettle();
+
+    expect(session.deployedArmyStrength, 4);
+    expect(find.text('Сила в бой: 4'), findsWidgets);
+  });
+
+  testWidgets('Гриболюды (тикет 23): новый раунд отзывает «в бой» без потребления', (
+    tester,
+  ) async {
+    await _openGameScreen(tester, factionName: 'Гриболюды');
+
+    await tester.tap(find.byKey(const ValueKey('unique-unit-shlyapnik')));
+    await tester.pump();
+    expect(find.text('Сила в бой: 2'), findsOneWidget);
+
+    await tester.tap(find.text('Следующий раунд'));
+    await tester.pump();
+
+    expect(find.text('Текущий раунд: 2'), findsOneWidget);
+    expect(find.text('Сила в бой: 0'), findsOneWidget);
+  });
+
+  testWidgets('обычная фракция: лента с крутилками и оба бейджа без изменений', (
+    tester,
+  ) async {
+    await _openGameScreen(tester);
+
+    expect(find.text('Сила армии: 0'), findsOneWidget);
+    expect(find.text('Сила в бой: 0'), findsOneWidget);
+    expect(find.byType(ResourceCounterWheel), findsWidgets);
+    expect(find.byKey(const ValueKey('unique-units-grid')), findsNothing);
   });
 
   testWidgets('выход — только двойным «назад»', (tester) async {

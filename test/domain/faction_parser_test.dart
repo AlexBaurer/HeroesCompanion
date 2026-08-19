@@ -240,6 +240,58 @@ void main() {
     });
   });
 
+  group('uniqueUnits: по одному воину каждого типа (тикет 23)', () {
+    const json = '''
+{
+  "name": "Гриболюды",
+  "gamePart": 3,
+  "color": "#6D4C41",
+  "background": "assets/faction_background/mushroomers_low.PNG",
+  "description": "Их здания являются их же воинами.",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "shlyapnik", "name": "Шляпник", "power": 2}
+  ],
+  "uniqueUnits": true
+}
+''';
+
+    test('true разбирается во флаг фракции', () {
+      final faction = parse(json);
+
+      expect(faction.uniqueUnits, isTrue);
+    });
+
+    test('без поля — false по умолчанию', () {
+      expect(parse(_humansJson).uniqueUnits, isFalse);
+    });
+
+    test('не bool → FactionInvalidValueException', () {
+      const badJson = '''
+{
+  "name": "Гриболюды",
+  "gamePart": 3,
+  "color": "#6D4C41",
+  "background": "b",
+  "description": "Тестовое описание фракции.",
+  "resources": ["Дерево"],
+  "units": [
+    {"id": "shlyapnik", "name": "Шляпник", "power": 2}
+  ],
+  "uniqueUnits": "yes"
+}
+''';
+
+      expect(
+        () => parse(badJson),
+        throwsA(
+          isA<FactionInvalidValueException>()
+              .having((e) => e.field, 'field', 'uniqueUnits'),
+        ),
+      );
+    });
+  });
+
   group('battleUpgrade: «Лавка бронника» (эльфы)', () {
     const json = '''
 {

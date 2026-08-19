@@ -42,6 +42,12 @@ class GameSessionNotifier extends FamilyNotifier<GameSession, String> {
     ref.notifyListeners();
   }
 
+  /// Заявка уникального юнита «в бой»: 1 ↔ 0 (тикет 23, Гриболюды).
+  void toggleDeployed(String unitId) {
+    state.toggleDeployed(unitId);
+    ref.notifyListeners();
+  }
+
   void setToggleEnabled(int index, bool enabled) {
     state.setToggleEnabled(index, enabled);
     ref.notifyListeners();

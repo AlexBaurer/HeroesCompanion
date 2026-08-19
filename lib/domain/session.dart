@@ -69,6 +69,22 @@ class GameSession {
     }
   }
 
+  /// Заявка уникального юнита «в бой»: 1 ↔ 0 (тикет 23). Только для
+  /// фракций с [Faction.uniqueUnits] — у них нет общего числа и счётчиков,
+  /// «в бой» задаётся тапом по карточке юнита.
+  void toggleDeployed(String unitId) {
+    if (!faction.uniqueUnits) {
+      throw StateError('toggle «в бой» доступен только для фракций с uniqueUnits');
+    }
+    if (faction.unitById(unitId) == null) {
+      throw ArgumentError.value(unitId, 'unitId', 'неизвестный юнит фракции');
+    }
+    _armyDeployed[unitId] = armyDeployed(unitId) == 1 ? 0 : 1;
+    if (_armyDeployed[unitId] == 0) {
+      _battleUpgradeUnits.remove(unitId);
+    }
+  }
+
   /// Живые состояния модификаторов в порядке данных фракции.
   List<StrengthModifier> get modifiers => List.unmodifiable(_modifiers);
 
@@ -242,12 +258,18 @@ class GameSession {
     return false;
   }
 
-  /// Сбрасывает «в бой» на границе сражения: отправленные юниты вычитаются
-  /// из общего числа, «в бой» обнуляется для всех юнитов фракции.
+  /// Сбрасывает «в бой» на границе сражения. Обычные фракции: отправленные
+  /// юниты вычитаются из общего числа, «в бой» обнуляется для всех юнитов.
+  /// Фракции с uniqueUnits (Гриболюды): юниты отзываются из боя без
+  /// потребления — общего числа и запаса у них нет.
   void _resetDeployedArmy() {
     for (final unit in faction.units) {
-      setArmyTotal(unit.id, armyTotal(unit.id) - armyDeployed(unit.id));
-      setArmyDeployed(unit.id, 0);
+      if (faction.uniqueUnits) {
+        _armyDeployed[unit.id] = 0;
+      } else {
+        setArmyTotal(unit.id, armyTotal(unit.id) - armyDeployed(unit.id));
+        setArmyDeployed(unit.id, 0);
+      }
     }
   }
 

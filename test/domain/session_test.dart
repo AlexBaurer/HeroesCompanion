@@ -14,6 +14,7 @@ Faction _faction({
   List<String>? resources,
   List<StrengthModifier> modifiers = const [],
   ArmyPowerFormula armyPower = ArmyPowerFormula.perUnit,
+  bool uniqueUnits = false,
 }) {
   return Faction(
     name: 'Тестовая',
@@ -25,6 +26,21 @@ Faction _faction({
     units: units ?? _regularUnits,
     modifiers: modifiers,
     armyPowerFormula: armyPower,
+    uniqueUnits: uniqueUnits,
+  );
+}
+
+/// Гриболюды: по одному воину каждого типа (тикет 23) — заявка «в бой»
+/// тапом 0/1, общего числа нет, toggle-модификатор одного из юнитов.
+Faction _uniqueUnitsFaction() {
+  return _faction(
+    units: const [
+      Unit(id: 'shlyapnik', name: 'Шляпник', basePower: 2),
+      Unit(id: 'gribovoy', name: 'Грибовой', basePower: 2),
+      Unit(id: 'arhytoks', name: 'Архитокс', basePower: 10),
+    ],
+    modifiers: const [ToggleModifier(unitId: 'shlyapnik', bonusPower: 4)],
+    uniqueUnits: true,
   );
 }
 
@@ -361,6 +377,81 @@ void main() {
       final session = GameSession(faction: faction);
 
       expect(() => session.setToggleEnabled(0, true), throwsStateError);
+    });
+  });
+
+  group('uniqueUnits: по одному воину каждого типа (тикет 23)', () {
+    test('toggleDeployed: «в бой» 0 → 1 → 0', () {
+      final session = GameSession(faction: _uniqueUnitsFaction());
+
+      expect(session.armyDeployed('shlyapnik'), 0);
+      session.toggleDeployed('shlyapnik');
+      expect(session.armyDeployed('shlyapnik'), 1);
+      session.toggleDeployed('shlyapnik');
+      expect(session.armyDeployed('shlyapnik'), 0);
+    });
+
+    test('toggleDeployed только для uniqueUnits-фракций → StateError', () {
+      final session = GameSession(faction: _faction());
+
+      expect(() => session.toggleDeployed('soldier'), throwsStateError);
+    });
+
+    test('неизвестный юнит в toggleDeployed → ArgumentError', () {
+      final session = GameSession(faction: _uniqueUnitsFaction());
+
+      expect(() => session.toggleDeployed('dragon'), throwsArgumentError);
+    });
+
+    test('сила «в бой» = Σ по заявленным юнитам (каждый один раз)', () {
+      final session = GameSession(faction: _uniqueUnitsFaction());
+
+      expect(session.deployedArmyStrength, 0);
+      session.toggleDeployed('shlyapnik');
+      session.toggleDeployed('arhytoks');
+      expect(session.deployedArmyStrength, 12);
+
+      session.toggleDeployed('shlyapnik');
+      expect(session.deployedArmyStrength, 10);
+    });
+
+    test('общее число и общая сила армии не участвуют', () {
+      final session = GameSession(faction: _uniqueUnitsFaction());
+
+      session.toggleDeployed('arhytoks');
+
+      expect(session.armyTotal('arhytoks'), 0);
+      expect(session.totalArmyStrength, 0);
+      expect(session.deployedArmyStrength, 10);
+    });
+
+    test('toggle-модификаторы продолжают менять силу «в бой»', () {
+      final session = GameSession(faction: _uniqueUnitsFaction());
+
+      session.toggleDeployed('shlyapnik');
+      expect(session.deployedArmyStrength, 2);
+
+      session.setToggleEnabled(0, true);
+
+      expect(session.unitBattlePower('shlyapnik'), 4);
+      expect(session.deployedArmyStrength, 4);
+    });
+
+    test('граница раунда отзывает «в бой» без потребления армии', () {
+      final session = GameSession(faction: _uniqueUnitsFaction());
+      session.toggleDeployed('shlyapnik');
+      session.toggleDeployed('arhytoks');
+      expect(session.deployedArmyStrength, 12);
+
+      session.advanceRound();
+
+      expect(session.round, 2);
+      expect(session.armyDeployed('shlyapnik'), 0);
+      expect(session.armyDeployed('arhytoks'), 0);
+      expect(session.armyTotal('shlyapnik'), 0);
+      expect(session.armyTotal('arhytoks'), 0);
+      expect(session.deployedArmyStrength, 0);
+      expect(session.totalArmyStrength, 0);
     });
   });
 
