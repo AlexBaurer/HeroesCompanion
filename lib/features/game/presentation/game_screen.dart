@@ -184,16 +184,12 @@ class _GameView extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Партия: $factionName',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                        
                         Text(
                           'Текущий раунд: ${session.round}',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            fontSize: 21,
                           ),
                         ),
                       ],
@@ -219,7 +215,7 @@ class _GameView extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Center(
                   child: SizedBox(
-                    width: 200,
+                    width: 250,
                     child: FilledButton(
                       onPressed: () => _openModifiers(context),
                       child: const Text('МОДИФИКАТОРЫ СИЛЫ'),

@@ -1,7 +1,7 @@
 name: heroescompanion
 description: "Компаньон для настольной игры «Герои»."
 publish_to: 'none'
-version: 3.0.0+2
+version: 3.0.0+6
 
 environment:
   sdk: ^3.9.2

@@ -19,7 +19,7 @@ class FactionChooseScreen extends ConsumerWidget {
   static const tileHeight = 120.0;
 
   /// Размер имени фракции на плитке (20sp × 2 по запросу пользователя).
-  static const tileNameFontSize = 50.0;
+  static const tileNameFontSize = 45.0;
 
   /// Сдвиг фоновой картинки плитки по вертикали в пикселях (положительный —
   /// вниз, отрицательный — вверх). Картинка-подложка рисуется с запасом по
